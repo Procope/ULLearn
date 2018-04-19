@@ -1,0 +1,55 @@
+MacBook:analogy mario$ python analogy.py --model 'bow5'
+
+gram5-present-participle 0.6704545454545454 0.7818590311557169
+gram1-adjective-to-adverb 0.1693548387096774 0.27214939923316167
+family 0.8181818181818182 0.8698343729395176
+gram8-plural 0.6681681681681682 0.7522690196093209
+gram3-comparative 0.8303303303303303 0.8916557740521934
+gram2-opposite 0.3633004926108374 0.43216434825773664
+gram4-superlative 0.5710227272727273 0.6987903418881226
+capital-world 0.7029177718832891 0.7988549579564601
+city-in-state 0.5127685447912445 0.6213078533111355
+gram9-plural-verbs 0.735632183908046 0.8217609198072625
+gram7-past-tense 0.5467948717948717 0.6661794735807762
+capital-common-countries 0.9407114624505929 0.9639281008846227
+gram6-nationality-adjective 0.8236397748592871 0.8648149066187601
+currency 0.12229102167182662 0.16867354008564164
+Overall
+0.6228061065531207 0.7111230374484199
+
+MacBook:analogy mario$ python analogy.py --model 'bow2'
+gram5-present-participle    62.69   747
+gram1-adjective-to-adverb   15.93   236
+family                      79.45   854
+gram8-plural                73.27   793
+gram3-comparative           89.56   939
+gram2-opposite              35.59   423
+gram4-superlative           63.07   730
+capital-world               63.02   719
+city-in-state               39.24   498
+gram9-plural-verbs          80.69   865
+gram7-past-tense            55.71   663
+capital-common-countries    83.60   882
+gram6-nationality-adjective 74.17   807
+currency                    11.30   148
+Overall
+                            59.29  0.674
+
+
+MacBook:analogy mario$ python analogy.py --model 'deps'
+gram5-present-participle    64.68  &  0.740
+gram1-adjective-to-adverb   03.43  &  0.067
+family                      81.62  &  0.854
+gram8-plural                67.57  &  0.748
+gram3-comparative           80.11  &  0.853
+gram2-opposite              40.02  &  0.476
+gram4-superlative           56.06  &  0.637
+capital-world               11.21  &  0.203
+city-in-state               12.28  &  0.221
+gram9-plural-verbs          90.92  &  0.945
+gram7-past-tense            65.90  &  0.732
+capital-common-countries    35.18  &  0.494
+gram6-nationality-adjective 12.13  &  0.220
+currency                    06.38  &  0.096
+Overall&
+                            36.72  &  0.446
