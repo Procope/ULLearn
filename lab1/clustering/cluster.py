@@ -35,10 +35,7 @@ def viz_vectors(data, labels, method, model_name):
                      ha='right',
                      va='bottom')
 
-    try:
-        plt.savefig('{}/{}.pdf'.format(method, model_name))
-    except FileNotFoundError:
-        plt.savefig('clustering/{}/{}.pdf'.format(method, model_name))
+    plt.savefig('clustering/{}/{}.pdf'.format(method, model_name))
 
     plt.close()
 
@@ -57,16 +54,13 @@ def k_means(data, words, k):
     clusters = defaultdict(list)
 
     for l in range(len(labels)):
-        clusters[str(labels[l])]+=[words[l]]
+        clusters[str(labels[l])] += [words[l]]
 
     return clusters
 
 
 def clusters_to_file(clusters, filename):
-    try:
-        f_out = open('clusters/{}'.format(filename), 'w')
-    except FileNotFoundError:
-        f_out = open('clustering/clusters/{}'.format(filename), 'w')
+    f_out = open('clustering/clusters/{}'.format(filename), 'w')
 
     for c in clusters.keys():
         print(c, file=f_out)
@@ -78,16 +72,13 @@ def clusters_to_file(clusters, filename):
 
 
 for model in ['deps', 'bow2', 'bow5']:
-    try:
-        embeddings, word2index = read_word_embeds("../models/{}.words.bz2".format(model))
-    except FileNotFoundError:
-        embeddings, word2index = read_word_embeds("models/{}.words.bz2".format(model))
 
+    embeddings, word2index = read_word_embeds("models/{}.words.bz2".format(model))
     data, labels = read_noun_list(embeddings, word2index)
 
     print('Model: {}'.format(model))
 
-    # viz_vectors(data, labels, "pca", model)
+    viz_vectors(data, labels, "pca", model)
     # viz_vectors(data, labels, "tsne", model)
 
     print('K-means clustering.')

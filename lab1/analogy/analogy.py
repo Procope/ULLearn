@@ -36,7 +36,7 @@ def analogy_score(filepath, embeddings, w2i, model):
     class_name = filepath.split('/')[-1]  # remove folder path
     class_name = class_name[:-4] # remove .txt extension
 
-    with open(filepath, "r") as f_in, open("analogy-results-{}/analogies-{}.txt".format(model, class_name), "w") as f_out:
+    with open(filepath, "r") as f_in, open("analogy/analogy-results-{}/analogies-{}.txt".format(model, class_name), "w") as f_out:
 
         lines = f_in.readlines()
         for line in lines:
@@ -127,15 +127,12 @@ def analogy_task(folder_path, embeddings, word2index, model):
     return mean_acc, mean_MRR, accuracies, MRRs
 
 
-try:
-    embeddings, w2i = read_word_embeds("../models/{}.words.bz2".format(args.model))
-except FileNotFoundError:
-    embeddings, w2i = read_word_embeds("models/{}.words.bz2".format(args.model))
+embeddings, w2i = read_word_embeds("models/{}.words.bz2".format(args.model))
 
 if args.test:
-    mean_acc, mean_MRR, accuracies, MRRs = analogy_task('analogy-questions-test', embeddings, w2i, args.model)
+    mean_acc, mean_MRR, accuracies, MRRs = analogy_task('analogy/analogy-questions-test', embeddings, w2i, args.model)
 else:
-    mean_acc, mean_MRR, accuracies, MRRs = analogy_task('analogy-questions', embeddings, w2i, args.model)
+    mean_acc, mean_MRR, accuracies, MRRs = analogy_task('analogy/analogy-questions', embeddings, w2i, args.model)
 
 print('Overall')
 print(mean_acc, mean_MRR)

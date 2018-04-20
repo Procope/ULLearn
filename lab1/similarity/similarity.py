@@ -42,10 +42,8 @@ pairs_men, sim_men = get_MEN()
 pairs_simlex, sim_simlex = get_simlex()
 
 for model in ['deps', 'bow2', 'bow5']:
-    try:
-        embeddings, word2index = read_word_embeds("../models/{}.words.bz2".format(model))
-    except FileNotFoundError:
-        embeddings, word2index = read_word_embeds("models/{}.words.bz2".format(model))
+
+    embeddings, word2index = read_word_embeds("models/{}.words.bz2".format(model))
 
     for dataset in ['SIM-LEX', 'MEN']:
         print(model, dataset)

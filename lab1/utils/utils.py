@@ -44,11 +44,7 @@ def get_simlex():
     pairs_simlex = []
     sim_simlex = []
 
-    try:
-        file = open("SimLex-999/SimLex-999.txt", "r")
-    except FileNotFoundError:
-        file = open("similarity/SimLex-999/SimLex-999.txt", "r")
-
+    file = open("similarity/SimLex-999/SimLex-999.txt", "r")
     lines = file.readlines()[1:]
     file.close()
 
@@ -72,11 +68,7 @@ def get_MEN():
     pairs_MEN = []
     sim_MEN = []
 
-    try:
-        file = open("MEN/MEN_dataset_natural_form_full", "r")
-    except FileNotFoundError:
-        file = open("similarity/MEN/MEN_dataset_natural_form_full", "r")
-
+    file = open("similarity/MEN/MEN_dataset_natural_form_full", "r")
     lines = file.readlines()
     file.close()
 
@@ -98,10 +90,7 @@ def read_noun_list(embeddings, w2i, n=0):
     data = []
     labels = []
 
-    try:
-        file = open("2000_nouns_sorted.txt", "r")
-    except FileNotFoundError:
-        file = open("clustering/2000_nouns_sorted.txt", "r")
+    file = open("clustering/2000_nouns_sorted.txt", "r")
 
     if n <= 0:
         lines = file.readlines()
