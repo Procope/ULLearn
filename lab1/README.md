@@ -1,3 +1,5 @@
+## Evaluating word representations
+
 To execute the three different tasks, first `cd ULLearn/lab1`, then run:
 
 - `python similarity/similarity.py`
