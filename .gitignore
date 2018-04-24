@@ -1,2 +1,6 @@
 *.pyc
 *.bz2
+lab2/data/europarl
+lab2/data/wa
+lab2/data/hansards
+lab2/data/lst
