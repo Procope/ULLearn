@@ -1,9 +1,9 @@
 import numpy as np
 import random
 import torch
+from collections import defaultdict
 
-
-def read_corpus(corpus_path, n_sentences):
+def read_corpus(corpus_path, threshold, n_sentences):
 
     with open(corpus_path, 'r') as f:
         corpus = f.readlines()[:n_sentences]
@@ -11,21 +11,22 @@ def read_corpus(corpus_path, n_sentences):
     tokenized_corpus = [sentence.split() for sentence in corpus]
 
     vocabulary = []
-
-    # todo: discard words that occur less than k times (e.g. k = 10)
-    # word_count = []
+    counter = defaultdict(int)
 
     for sentence in tokenized_corpus:
         for token in sentence:
             if token not in vocabulary:
                 vocabulary.append(token)
+            counter[token] += 1
+
+    print('Number of discarded word types:', len([w for w in vocabulary if counter[w] <= threshold]))
+
+    vocabulary = [w for w in vocabulary if counter[w] > threshold]
 
     word2idx = {w: idx for (idx, w) in enumerate(vocabulary)}
-    idx2word = {idx: w for (idx, w) in enumerate(vocabulary)}
+    idx2word = {idx: w for (w, idx) in word2idx.items()}
 
-    V = len(vocabulary)
-
-    return tokenized_corpus, word2idx, idx2word, V
+    return tokenized_corpus, word2idx, idx2word
 
 
 def create_skipgrams(tokenized_corpus,
@@ -37,7 +38,8 @@ def create_skipgrams(tokenized_corpus,
     V = len(word2idx)
 
     for sentence in tokenized_corpus:
-        sentence_ids = [word2idx[word] for word in sentence]
+
+        sentence_ids = [word2idx[w] for w in sentence if w in word2idx.keys()]
 
         for center_word in range(len(sentence_ids)):
 
@@ -76,4 +78,3 @@ def create_skipgrams(tokenized_corpus,
         batches_new.append((center_id_batch, pos_context_id_batch, neg_context_ids_batch))
 
     return batches_new
-
