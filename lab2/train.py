@@ -13,7 +13,7 @@ parser.add_argument('--window', type=int, default=2, help='One-sided window size
 parser.add_argument('--batch', type=int, default=100, help='Number of batches')
 parser.add_argument('--epochs', type=int, default=200, help='Number of epochs to train.')
 parser.add_argument('--lr', type=float, default=0.001, help='Initial learning rate.')
-parser.add_argument('--test', type=int, default=100, help='Number of sentences to consider for testing')
+parser.add_argument('--test', type=int, default=None, help='Number of sentences to consider for testing')
 parser.add_argument('--save', type=str, default='skipgram-embeds.txt', help='Path of the output text file containing embeddings')
 parser.add_argument('--threshold', type=int, default=5, help='Discard words occurring less than threshold times')
 
@@ -23,11 +23,10 @@ window_size = args.window
 batch_size = args.batch
 num_epochs = args.epochs
 lr = args.lr
-n_sent = args.test
 output_path = args.save
 
 
-corpus, word2idx, idx2word = read_corpus('data/europarl/training.en', args.threshold, n_sent)
+corpus, word2idx, idx2word = read_corpus('data/europarl/training.en', args.threshold, args.test)
 data = create_skipgrams(corpus, word2idx, window_size, batch_size)
 V = len(word2idx)
 

@@ -6,7 +6,10 @@ from collections import defaultdict
 def read_corpus(corpus_path, threshold, n_sentences):
 
     with open(corpus_path, 'r') as f:
-        corpus = f.readlines()[:n_sentences]
+        if n_sentences:
+            corpus = f.readlines()[:n_sentences]
+        else:
+            corpus = f.readlines()
 
     tokenized_corpus = [sentence.split() for sentence in corpus]
 
