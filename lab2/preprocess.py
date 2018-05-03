@@ -94,13 +94,16 @@ def create_parallel_batches(tokenized_corpus_l1, tokenized_corpus_l2,
 
     V_l1, V_l2 = len(word2idx_l1), len(word2idx_l2)
 
-    batches_l1 = create_monolingual_batches(tokenized_corpus_l1, word2idx_l1)
-    batches_l2 = create_monolingual_batches(tokenized_corpus_l2, word2idx_l2)
+    batches_l1 = create_monolingual_batches(tokenized_corpus_l1, word2idx_l1, batch_size)
+    batches_l2 = create_monolingual_batches(tokenized_corpus_l2, word2idx_l2, batch_size)
 
     return batches_l1, batches_l2
 
 
-def create_monolingual_batches(tokenized_corpus, word2idx):
+def create_monolingual_batches(tokenized_corpus, word2idx, batch_size):
+
+    with open("stop_words_en.txt", "r") as f:
+        stop_words = list(map(str.strip, f.readlines()))
 
     batches = []
     batch = []
@@ -110,7 +113,12 @@ def create_monolingual_batches(tokenized_corpus, word2idx):
 
     for i, sentence in enumerate(tokenized_corpus, start=1):
 
-            sentence = [w if w in word2idx.keys() else '-UNK-' for w in sentence]
+            sentence = [w if ( w in word2idx.keys()
+                               and w not in stop_words
+                             )
+                        else '-UNK-'
+                        for w in sentence]
+
             sentence_ids = [word2idx[w] for w in sentence]
 
             sent_len = len(sentence_ids)
