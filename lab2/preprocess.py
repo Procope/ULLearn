@@ -132,17 +132,22 @@ def create_monolingual_batches(tokenized_corpus, word2idx):
 
 
 # SKIPGRAM ###########################################################
-corpus, word2idx, idx2word = read_corpus('data/europarl/training.en')
-data = create_skipgrams(corpus, word2idx, 5, 100)
+# corpus, word2idx, idx2word = read_corpus('data/europarl/training.en')
+# data = create_skipgrams(corpus, word2idx, 5, 100)
 
-pickle.dump(data, open("skipgrams-europarl-en-5w-100btc.p", "wb" ))
-pickle.dump(word2idx, open("w2i-europarl-en.p", "wb" ))
-pickle.dump(idx2word, open("i2wc-europarl-en.p", "wb" ))
+# pickle.dump(data, open("skipgrams-europarl-en-5w-100btc.p", "wb" ))
+# pickle.dump(word2idx, open("w2i-europarl-en.p", "wb" ))
+# pickle.dump(idx2word, open("i2wc-europarl-en.p", "wb" ))
 ######################################################################
 
 
-# EMBEDALIGN #########################################################
+# EMBEDALIGN ####################################################################################
 corpus_en, word2idx_en, _ = read_corpus('data/europarl/training.en', n_sentences=100)
 corpus_fr, word2idx_fr, _ = read_corpus('data/europarl/training.fr', n_sentences=100)
 
-create_parallel_batches(corpus_en, corpus_fr, word2idx_en, word2idx_fr, batch_size=100)
+batches = create_parallel_batches(corpus_en, corpus_fr, word2idx_en, word2idx_fr, batch_size=10)
+
+pickle.dump(batches, open("embedalign-europarl-10btc.p", "wb" ))
+pickle.dump(word2idx_en, open("w2i-europarl-en.p", "wb" ))
+pickle.dump(word2idx_fr, open("i2wc-europarl-fr.p", "wb" ))
+#################################################################################################
