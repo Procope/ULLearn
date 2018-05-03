@@ -2,6 +2,7 @@ import numpy as np
 import random
 import torch
 from collections import defaultdict
+import pickle
 
 def read_corpus(corpus_path, threshold, n_sentences):
 
@@ -13,18 +14,21 @@ def read_corpus(corpus_path, threshold, n_sentences):
 
     tokenized_corpus = [sentence.split() for sentence in corpus]
 
-    vocabulary = []
+    # vocabulary = []
     counter = defaultdict(int)
 
     for sentence in tokenized_corpus:
         for token in sentence:
-            if token not in vocabulary:
-                vocabulary.append(token)
+            # if token not in vocabulary:
+            #     vocabulary.append(token)
             counter[token] += 1
 
-    print('Number of discarded word types:', len([w for w in vocabulary if counter[w] <= threshold]))
+    sorted_counter_items = sorted(counter.items(), key=lambda t: t[1], reverse=True)
+    vocabulary = [w for (w, c) in sorted_counter_items[:10000]]
+    vocabulary.insert(0, 'UNK')
 
-    vocabulary = [w for w in vocabulary if counter[w] > threshold]
+    # print('Number of discarded word types:', len([w for w in vocabulary if counter[w] <= threshold]))
+    # vocabulary = [w for w in vocabulary if counter[w] > threshold]
 
     word2idx = {w: idx for (idx, w) in enumerate(vocabulary)}
     idx2word = {idx: w for (w, idx) in word2idx.items()}
@@ -81,3 +85,21 @@ def create_skipgrams(tokenized_corpus,
         batches_new.append((center_id_batch, pos_context_id_batch, neg_context_ids_batch))
 
     return batches_new
+
+
+# def create_parallel_batches(tokenized_corpus_l1, tokenized_corpus_l2,
+#                             word2idx_l1, word2idx_l2,
+#                             window_size,
+#                             batch_size):
+
+#     V_l1, V_l2 = len(word2idx_l1), len(word2idx_l2)
+
+#     for sentence in tokenized_corpus_l1:
+
+#         sentence_ids = [word2idx[w] for w in sentence if w in word2idx.keys()]
+
+
+#     return
+
+
+…
