@@ -25,7 +25,8 @@ def read_corpus(corpus_path, word_limit=10000, n_sentences=None):
 
     sorted_counter_items = sorted(counter.items(), key=lambda t: t[1], reverse=True)
     vocabulary = [w for (w, c) in sorted_counter_items[:word_limit]]
-    vocabulary.insert(0, 'UNK')
+    vocabulary.insert(0, '-UNK-')
+    vocabulary.insert(1, '-PAD-')
 
     # print('Number of discarded word types:', len([w for w in vocabulary if counter[w] <= threshold]))
     # vocabulary = [w for w in vocabulary if counter[w] > threshold]
@@ -87,24 +88,61 @@ def create_skipgrams(tokenized_corpus,
     return batches_new
 
 
-# def create_parallel_batches(tokenized_corpus_l1, tokenized_corpus_l2,
-#                             word2idx_l1, word2idx_l2,
-#                             window_size,
-#                             batch_size):
+def create_parallel_batches(tokenized_corpus_l1, tokenized_corpus_l2,
+                            word2idx_l1, word2idx_l2,
+                            batch_size):
 
-#     V_l1, V_l2 = len(word2idx_l1), len(word2idx_l2)
+    V_l1, V_l2 = len(word2idx_l1), len(word2idx_l2)
 
-#     for sentence in tokenized_corpus_l1:
+    batches_l1 = create_monolingual_batches(tokenized_corpus_l1, word2idx_l1)
+    batches_l2 = create_monolingual_batches(tokenized_corpus_l2, word2idx_l2)
 
-#         sentence_ids = [word2idx[w] for w in sentence if w in word2idx.keys()]
-
-
-#     return
+    return batches_l1, batches_l2
 
 
+def create_monolingual_batches(tokenized_corpus, word2idx):
+
+    batches = []
+    batch = []
+    batch_max_len = 0
+
+    pad_idx = word2idx['-PAD-']
+
+    for i, sentence in enumerate(tokenized_corpus, start=1):
+
+            sentence = [w if w in word2idx.keys() else '-UNK-' for w in sentence]
+            sentence_ids = [word2idx[w] for w in sentence]
+
+            sent_len = len(sentence_ids)
+            if sent_len > batch_max_len:
+                batch_max_len = sent_len
+
+            batch.append(sentence_ids)
+
+            if i % batch_size == 0:
+                for sent in batch:
+                    offset = batch_max_len - len(sent)
+                    sent += [pad_idx] * offset
+                batches.append(batch)
+                # reset for next batch
+                batch = []
+                batch_max_len = 0
+
+    return batches
+
+
+# SKIPGRAM ###########################################################
 corpus, word2idx, idx2word = read_corpus('data/europarl/training.en')
 data = create_skipgrams(corpus, word2idx, 5, 100)
 
 pickle.dump(data, open("skipgrams-europarl-en-5w-100btc.p", "wb" ))
 pickle.dump(word2idx, open("w2i-europarl-en.p", "wb" ))
 pickle.dump(idx2word, open("i2wc-europarl-en.p", "wb" ))
+######################################################################
+
+
+# EMBEDALIGN #########################################################
+corpus_en, word2idx_en, _ = read_corpus('data/europarl/training.en', n_sentences=100)
+corpus_fr, word2idx_fr, _ = read_corpus('data/europarl/training.fr', n_sentences=100)
+
+create_parallel_batches(corpus_en, corpus_fr, word2idx_en, word2idx_fr, batch_size=100)
