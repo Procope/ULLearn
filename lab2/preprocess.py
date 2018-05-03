@@ -4,7 +4,7 @@ import torch
 from collections import defaultdict
 import pickle
 
-def read_corpus(corpus_path, threshold, n_sentences):
+def read_corpus(corpus_path, word_limit=10000, n_sentences=None):
 
     with open(corpus_path, 'r') as f:
         if n_sentences:
@@ -24,7 +24,7 @@ def read_corpus(corpus_path, threshold, n_sentences):
             counter[token] += 1
 
     sorted_counter_items = sorted(counter.items(), key=lambda t: t[1], reverse=True)
-    vocabulary = [w for (w, c) in sorted_counter_items[:10000]]
+    vocabulary = [w for (w, c) in sorted_counter_items[:word_limit]]
     vocabulary.insert(0, 'UNK')
 
     # print('Number of discarded word types:', len([w for w in vocabulary if counter[w] <= threshold]))
@@ -102,4 +102,9 @@ def create_skipgrams(tokenized_corpus,
 #     return
 
 
-…
+corpus, word2idx, idx2word = read_corpus('data/europarl/training.en')
+data = create_skipgrams(corpus, word2idx, 5, 100)
+
+pickle.dump(data, open("skipgrams-europarl-en-5w-100btc.p", "wb" ))
+pickle.dump(word2idx, open("w2i-europarl-en.p", "wb" ))
+pickle.dump(idx2word, open("i2wc-europarl-en.p", "wb" ))
