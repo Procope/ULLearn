@@ -9,7 +9,7 @@ from preprocess import read_corpus, create_skipgrams
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dims', type=int, default=100, help='Word vector dimensionality')
-parser.add_argument('--window', type=int, default=2, help='One-sided window size')
+parser.add_argument('--window', type=int, default=5, help='One-sided window size')
 parser.add_argument('--batch', type=int, default=100, help='Number of batches')
 parser.add_argument('--epochs', type=int, default=200, help='Number of epochs to train.')
 parser.add_argument('--lr', type=float, default=0.001, help='Initial learning rate.')
@@ -52,7 +52,7 @@ for epoch in range(num_epochs):
         optimizer.step()
 
     if epoch % 10 == 0:
-        print(f'Loss at epoch {epoch}: {overall_loss/len(data)}')
+        print('Loss at epoch {}: {}'.format(epoch, overall_loss / epoch))
 
 
 # Write embeddings to file
