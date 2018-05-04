@@ -45,7 +45,10 @@ def create_skipgrams(tokenized_corpus,
     triplets = []
     V = len(word2idx)
 
-    for sentence in tokenized_corpus:
+    for i, sentence in enumerate(tokenized_corpus, start=1):
+
+        if i % 50000 == 0:
+            print('{} sentences processed.'.format(i))
 
         sentence_ids = [word2idx[w] for w in sentence if w in word2idx.keys()]
 
@@ -113,49 +116,53 @@ def create_monolingual_batches(tokenized_corpus, word2idx, batch_size):
 
     for i, sentence in enumerate(tokenized_corpus, start=1):
 
-            sentence = [w if ( w in word2idx.keys()
-                               and w not in stop_words
-                             )
-                        else '-UNK-'
-                        for w in sentence]
+        sentence = [w if ( w in word2idx.keys()
+                           and w not in stop_words
+                         )
+                    else '-UNK-'
+                    for w in sentence]
 
-            sentence_ids = [word2idx[w] for w in sentence]
+        sentence_ids = [word2idx[w] for w in sentence]
 
-            sent_len = len(sentence_ids)
-            if sent_len > batch_max_len:
-                batch_max_len = sent_len
+        sent_len = len(sentence_ids)
+        if sent_len > batch_max_len:
+            batch_max_len = sent_len
 
-            batch.append(sentence_ids)
+        batch.append(sentence_ids)
 
-            if i % batch_size == 0:
-                for sent in batch:
-                    offset = batch_max_len - len(sent)
-                    sent += [pad_idx] * offset
-                batches.append(batch)
-                # reset for next batch
-                batch = []
-                batch_max_len = 0
+        if i % batch_size == 0:
+            for sent in batch:
+                offset = batch_max_len - len(sent)
+                sent += [pad_idx] * offset
+
+            batches.append(torch.LongTensor(batch))
+            # reset for next batch
+            batch = []
+            batch_max_len = 0
+
+        if i % 50000 == 0:
+            print('{} sentences processed.'.format(i))
 
     return batches
 
 
 # SKIPGRAM ###########################################################
-# corpus, word2idx, idx2word = read_corpus('data/europarl/training.en')
+# corpus, word2idx, _ = read_corpus('data/europarl/training.en')
 # data = create_skipgrams(corpus, word2idx, 5, 100)
 
 # pickle.dump(data, open("skipgrams-europarl-en-5w-100btc.p", "wb" ))
 # pickle.dump(word2idx, open("w2i-europarl-en.p", "wb" ))
-# pickle.dump(idx2word, open("i2wc-europarl-en.p", "wb" ))
+# pickle.dump(idx2word, open("i2w-europarl-en.p", "wb" ))
 ######################################################################
 
 
 # EMBEDALIGN ####################################################################################
-corpus_en, word2idx_en, _ = read_corpus('data/europarl/training.en', n_sentences=100)
-corpus_fr, word2idx_fr, _ = read_corpus('data/europarl/training.fr', n_sentences=100)
+# corpus_en, word2idx_en, _ = read_corpus('data/europarl/training.en')
+# corpus_fr, word2idx_fr, _ = read_corpus('data/europarl/training.fr')
 
-batches = create_parallel_batches(corpus_en, corpus_fr, word2idx_en, word2idx_fr, batch_size=10)
+# batches = create_parallel_batches(corpus_en, corpus_fr, word2idx_en, word2idx_fr, batch_size=100)
 
-pickle.dump(batches, open("embedalign-europarl-10btc.p", "wb" ))
-pickle.dump(word2idx_en, open("w2i-europarl-en.p", "wb" ))
-pickle.dump(word2idx_fr, open("i2wc-europarl-fr.p", "wb" ))
+# pickle.dump(batches, open("embedalign-europarl-100btc.p", "wb" ))
+# pickle.dump(word2idx_en, open("w2i-europarl-en.p", "wb" ))
+# pickle.dump(word2idx_fr, open("i2wc-europarl-fr.p", "wb" ))
 #################################################################################################
