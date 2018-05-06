@@ -147,12 +147,12 @@ def create_monolingual_batches(tokenized_corpus, word2idx, batch_size):
 
 
 # SKIPGRAM ###########################################################
-# corpus, word2idx, _ = read_corpus('data/europarl/training.en')
-# data = create_skipgrams(corpus, word2idx, 5, 100)
+corpus, word2idx, _ = read_corpus('data/europarl/training.en', n_sentences=5000)
+data = create_skipgrams(corpus, word2idx, 5, 100)
 
-# pickle.dump(data, open("skipgrams-europarl-en-5w-100btc.p", "wb" ))
-# pickle.dump(word2idx, open("w2i-europarl-en.p", "wb" ))
-# pickle.dump(idx2word, open("i2w-europarl-en.p", "wb" ))
+pickle.dump(data, open("skipgram-europarl-en-5w-100btc-5000.p", "wb" ))
+pickle.dump(word2idx, open("w2i-skipgram-europarl-en-5000.p", "wb" ))
+# pickle.dump(idx2word, open("i2w-skipgram-europarl-en.p", "wb" ))
 ######################################################################
 
 

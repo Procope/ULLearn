@@ -11,11 +11,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--dims', type=int, default=100, help='Word vector dimensionality')
 parser.add_argument('--window', type=int, default=5, help='One-sided window size')
 parser.add_argument('--batch', type=int, default=100, help='Number of batches')
-parser.add_argument('--epochs', type=int, default=200, help='Number of epochs to train.')
+parser.add_argument('--epochs', type=int, default=50, help='Number of epochs to train.')
 parser.add_argument('--lr', type=float, default=0.001, help='Initial learning rate.')
-parser.add_argument('--test', type=int, default=None, help='Number of sentences to consider for testing')
-parser.add_argument('--save', type=str, default='skipgram-embeds.txt', help='Path of the output text file containing embeddings')
-parser.add_argument('--threshold', type=int, default=5, help='Discard words occurring less than threshold times')
+parser.add_argument('--n_batches', type=int, default=50, help='Number of batches.')
 
 args = parser.parse_args()
 embed_dim = args.dims
@@ -23,18 +21,33 @@ window_size = args.window
 batch_size = args.batch
 num_epochs = args.epochs
 lr = args.lr
-output_path = args.save
+num_batches = args.n_batches
+
+print('Embedding dimensionality: {}'.format(embed_dim))
+print('Window size: {}'.format(window_size))
+print('Batch size: {}'.format(batch_size))
+print('Number of sentence pairs: {}'.format(batch_size * num_batches))
+print('Number of epochs: {}'.format(num_epochs))
+print('Initial learning rate: {}'.format(lr))
 
 
-corpus, word2idx, idx2word = read_corpus('data/europarl/training.en', args.threshold, args.test)
-data = create_skipgrams(corpus, word2idx, window_size, batch_size)
+# corpus, word2idx, idx2word = read_corpus('data/europarl/training.en', n_sentences = batch_size * num_batches)
+# data = create_skipgrams(corpus, word2idx, window_size, batch_size)
+
+with open('w2i-skipgram-europarl-en-5000.p', 'rb') as f_in:
+    word2idx = pickle.load(f_in)
+
+with open('skipgram-europarl-en-5w-100btc-5000.p', 'rb') as f_in:
+    data = pickle.load(f_in)
+
 V = len(word2idx)
+
 
 model = Skipgram(V, embed_dim)
 optimizer = torch.optim.SGD(model.parameters(), lr=lr)
 
 # Train
-for epoch in range(num_epochs):
+for epoch in range(1, num_epochs+1):
     overall_loss = 0
     model.train()
     optimizer.zero_grad()
@@ -51,14 +64,14 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
 
-    if epoch % 10 == 0:
-        print('Loss at epoch {}: {}'.format(epoch, overall_loss / epoch))
+    # if epoch % 10 == 0:
+    print('Loss at epoch {}: {}'.format(epoch, overall_loss / epoch))
 
 
 # Write embeddings to file
 embeddings = model.input_embeds.weight
 
-with open(output_path, 'w') as f_out:
+with open('skipgram-europarl-en-{}w-{}btc-{}.txt'.format(window_size, batch_size, num_batches*batch_size), 'w') as f_out:
     for idx in range(embeddings.size()[0]):
         word = idx2word[idx]
 
