@@ -4,6 +4,7 @@ import torch
 from collections import defaultdict
 import pickle
 
+
 def read_corpus(corpus_path, word_limit=10000, n_sentences=None):
 
     with open(corpus_path, 'r') as f:
@@ -45,12 +46,17 @@ def create_skipgrams(tokenized_corpus,
     triplets = []
     V = len(word2idx)
 
+    with open("stop_words_en.txt", "r") as f:
+        stop_words = list(map(str.strip, f.readlines()))
+
     for i, sentence in enumerate(tokenized_corpus, start=1):
 
         if i % 50000 == 0:
             print('{} sentences processed.'.format(i))
 
-        sentence_ids = [word2idx[w] for w in sentence if w in word2idx.keys()]
+        sentence_ids = [word2idx[w] if (w in word2idx.keys() and w not in stop_words) else word2idx['-UNK-'] for w in sentence]
+        # print(sentence_ids)
+        #sentence_ids = [word2idx[w] for w in sentence if w in word2idx.keys()]
 
         for center_word in range(len(sentence_ids)):
 
@@ -64,8 +70,7 @@ def create_skipgrams(tokenized_corpus,
                 context_word_id = sentence_ids[context_word]
 
                 # negative samples: draw from unigram distribution to the 3/4th power
-                neg_context_ids = torch.LongTensor(np.random.randint(0, V, 2*window_size))
-
+                neg_context_ids = torch.LongTensor(np.random.randint(0, V, 2 * window_size))
                 triplets.append((sentence_ids[center_word], context_word_id, neg_context_ids))
 
     # shuffle
@@ -77,13 +82,13 @@ def create_skipgrams(tokenized_corpus,
     if cutoff > 0:
         triplets = triplets[:-cutoff]
 
-    batches = [triplets[x : x+batch_size] for x in range(0, len(triplets), batch_size)]
+    batches = [triplets[x: x + batch_size] for x in range(0, len(triplets), batch_size)]
 
     batches_new = []
 
     for batch in batches:
-        center_id_batch       = [triplet[0] for triplet in batch]
-        pos_context_id_batch  = [triplet[1] for triplet in batch]
+        center_id_batch = [triplet[0] for triplet in batch]
+        pos_context_id_batch = [triplet[1] for triplet in batch]
         neg_context_ids_batch = [triplet[2] for triplet in batch]
 
         batches_new.append((center_id_batch, pos_context_id_batch, neg_context_ids_batch))
@@ -116,9 +121,9 @@ def create_monolingual_batches(tokenized_corpus, word2idx, batch_size):
 
     for i, sentence in enumerate(tokenized_corpus, start=1):
 
-        sentence = [w if ( w in word2idx.keys()
-                           and w not in stop_words
-                         )
+        sentence = [w if (w in word2idx.keys()
+                          and w not in stop_words
+                          )
                     else '-UNK-'
                     for w in sentence]
 
@@ -147,11 +152,11 @@ def create_monolingual_batches(tokenized_corpus, word2idx, batch_size):
 
 
 # SKIPGRAM ###########################################################
-corpus, word2idx, _ = read_corpus('data/europarl/training.en', n_sentences=2000)
+corpus, word2idx, _ = read_corpus('data/europarl/training.en', n_sentences=500)
 data = create_skipgrams(corpus, word2idx, 5, 100)
 
-pickle.dump(data, open("skipgram-europarl-en-5w-100btc-5000.p", "wb" ))
-pickle.dump(word2idx, open("w2i-skipgram-europarl-en-5000.p", "wb" ))
+pickle.dump(data, open("skipgram-europarl-en-5w-100btc-500.p", "wb"))
+pickle.dump(word2idx, open("w2i-skipgram-europarl-en-500.p", "wb"))
 # pickle.dump(idx2word, open("i2w-skipgram-europarl-en.p", "wb" ))
 ######################################################################
 

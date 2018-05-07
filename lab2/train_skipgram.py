@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import argparse
 from torch.autograd import Variable
-
+import pickle
 from Skipgram import Skipgram
 from preprocess import read_corpus, create_skipgrams
 
@@ -12,7 +12,7 @@ parser.add_argument('--dims', type=int, default=100, help='Word vector dimension
 parser.add_argument('--window', type=int, default=5, help='One-sided window size')
 parser.add_argument('--batch', type=int, default=100, help='Number of batches')
 parser.add_argument('--epochs', type=int, default=50, help='Number of epochs to train.')
-parser.add_argument('--lr', type=float, default=0.001, help='Initial learning rate.')
+parser.add_argument('--lr', type=float, default=0.0001, help='Initial learning rate.')
 parser.add_argument('--n_batches', type=int, default=50, help='Number of batches.')
 
 args = parser.parse_args()
@@ -34,28 +34,32 @@ print('Initial learning rate: {}'.format(lr))
 # corpus, word2idx, idx2word = read_corpus('data/europarl/training.en', n_sentences = batch_size * num_batches)
 # data = create_skipgrams(corpus, word2idx, window_size, batch_size)
 
-with open('w2i-skipgram-europarl-en-2000.p', 'rb') as f_in:
-    word2idx = pickle.load(f_in)
+# with open('w2i-skipgram-europarl-en-500.p', 'rb') as f_in:
+#   word2idx = pickle.load(f_in)
 
-with open('skipgram-europarl-en-5w-100btc-2000.p', 'rb') as f_in:
-    data = pickle.load(f_in)
+# with open('skipgram-europarl-en-5w-100btc-500.p', 'rb') as f_in:
+#   data = pickle.load(f_in)
 
+#V = len(word2idx)
+
+corpus, word2idx, idx2word = read_corpus('data/europarl/training.en', n_sentences=100)
+data = create_skipgrams(corpus, word2idx, window_size, batch_size)
 V = len(word2idx)
-
+print("done with data")
 
 model = Skipgram(V, embed_dim)
 optimizer = torch.optim.SGD(model.parameters(), lr=lr)
 
 # Train
-for epoch in range(1, num_epochs+1):
+for epoch in range(1, num_epochs + 1):
     overall_loss = 0
     model.train()
     optimizer.zero_grad()
 
     for batch in data:
 
-        center_id       = torch.LongTensor(batch[0])
-        pos_context_id  = torch.LongTensor(batch[1])
+        center_id = torch.LongTensor(batch[0])
+        pos_context_id = torch.LongTensor(batch[1])
         neg_context_ids = torch.stack(batch[2])
 
         loss = model(center_id, pos_context_id, neg_context_ids)
@@ -65,13 +69,14 @@ for epoch in range(1, num_epochs+1):
         optimizer.step()
 
     # if epoch % 10 == 0:
-    print('Loss at epoch {}: {}'.format(epoch, overall_loss / epoch))
+    print('Loss at epoch {}: {}'.format(epoch, overall_loss))
+    print(model.input_embeds.weight[:3])
 
 
 # Write embeddings to file
 embeddings = model.input_embeds.weight
 
-with open('skipgram-europarl-en-{}w-{}btc-{}.txt'.format(window_size, batch_size, num_batches*batch_size), 'w') as f_out:
+with open('skipgram-europarl-en-{}w-{}btc-{}.txt'.format(window_size, batch_size, num_batches * batch_size), 'w') as f_out:
     for idx in range(embeddings.size()[0]):
         word = idx2word[idx]
 
