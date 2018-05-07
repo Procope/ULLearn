@@ -34,10 +34,10 @@ print('Initial learning rate: {}'.format(lr))
 # corpus, word2idx, idx2word = read_corpus('data/europarl/training.en', n_sentences = batch_size * num_batches)
 # data = create_skipgrams(corpus, word2idx, window_size, batch_size)
 
-with open('w2i-skipgram-europarl-en-5000.p', 'rb') as f_in:
+with open('w2i-skipgram-europarl-en-2000.p', 'rb') as f_in:
     word2idx = pickle.load(f_in)
 
-with open('skipgram-europarl-en-5w-100btc-5000.p', 'rb') as f_in:
+with open('skipgram-europarl-en-5w-100btc-2000.p', 'rb') as f_in:
     data = pickle.load(f_in)
 
 V = len(word2idx)

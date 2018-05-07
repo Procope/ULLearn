@@ -1,22 +1,21 @@
 import numpy as np
 import pickle
+import torch
+from torch.nn import Softplus
+from sklearn.preprocessing import normalize
 
-
-def skipgram_scores(embeds, target, alternatives, context, mode='cosine'):
+def skipgram_scores(embeds, context, mode='cosine'):
     '''
     Scoring functions from:
     Melamud, Oren, Omer Levy, and Ido Dagan.
     "A simple word embedding model for lexical substitution."
     Proceedings of the 1st Workshop on Vector Space Modeling for Natural Language Processing. 2015.
     '''
-    t = embeds[target]
-    alternatives = np.array([embeds[a] for a in alternatives])
-    c_len = len(context)
-    c = np.array([embeds[w] for w in context])
-
+    t, alternatives = embeds[0], embeds[1:]
+    print(t.shape, alternatives.shape)
     if mode == 'cosine':
-            scores = alternatives @ t
-            scores = scores.tolist()
+        scores = alternatives @ t
+        scores = scores.tolist()
 
     elif mode == 'add':
             scores = [
@@ -51,38 +50,129 @@ def skipgram_scores(embeds, target, alternatives, context, mode='cosine'):
     else:
         raise ValueError('Mode: [add, baladd, mult, balmult, test]')
 
+    return scores
 
-def kl_div(u, l, m_1, m_2):
+
+def kl_div(s0, s1, m_0, m_1):
     # u,l are cov matrices
     # m_1 and m_2 are mean vectors
-    kl = -0.5 * np.trace(np.matmul(u, l)) \
-            + np.matmul(np.matmul(np.transpose(m_1 - m_2), np.linalg.inv(u)), (m_1 - m_2)) - dim \
-            + np.log(np.linalg.det(l) / np.linalg.det(u))
+    kl = 0.5 * (np.trace(np.matmul(np.linalg.inv(s1), s0)) \
+            + np.matmul(np.matmul(np.transpose(m_1 - m_0), np.linalg.inv(s1)), (m_1 - m_0)) - s0.shape[0] \
+            + np.log(np.linalg.det(s1) / np.linalg.det(s0)))
     return kl
 
 
-def embedalign_scores(embeds_means, embeds_cov_matrices, target, alternatives, context):
+def embedalign_scores(embeds_means, embeds_vars):
 
-    t_mean = embeds_means[target]
-    t_cov_matrix = embeds_cov_matrices[:, :, target]
+    t_mean = embeds_means[0]
+    t_cov_matrix = np.diag(embeds_vars[0])
 
-    dim = len(t_mean)
-    alternatives_len = len(alternatives)
-
-    alternatives_means = np.array([embeds_means[a] for a in alternatives])
-    alternatives_cov_matrices = np.array([embeds_cov_matrices[:, :, a] for a in alternatives])
+    alternatives_means = list(embeds_means[1:])
+    alternatives_cov_matrices = [np.diag(v) for v in embeds_vars[1:]]
 
     # scoring
     scores = [
-            kl_div(alternatives_cov_matrices[:, :, a],
+            kl_div(alternatives_cov_matrices[a],
                    t_cov_matrix,
                    alternatives_means[a],
                    t_mean)
             for a
-            in alternatives
+            in range(len(alternatives_means))
     ]
 
     return scores
+
+
+def retrieve_skipgram_vectors(model_path, candidates_dict, threshold):
+        with open(model_path, 'r') as f_in:
+            embed_file = map(str.strip, f_in.readlines())
+
+        word2embed = {}
+        for line in embed_file:
+            line = line.split()
+            word = line[0]
+            embed = np.array([float(x[:-1]) for x in line[1:]])
+            word2embed[word] = embed
+
+        for e in word2embed.values(): e /= np.linalg.norm(e)
+
+        target2embeds = {}
+
+        skip_count = 0
+        for target, alternatives in candidates_dict.items():
+            embeds = []
+            missing_alter_count = 0
+
+            if target not in word2embed:
+                skip_count += 1
+                continue
+            else:
+                embeds.append(word2embed[target])
+
+            for w in alternatives:
+                try:
+                    embeds.append(word2embed[w])
+                except KeyError:
+                    missing_alter_count += 1
+                    if missing_alter_count > threshold:
+                        # if too few alternatives are in the vocabulary, skip example
+                        skip_count += 1
+                        continue
+
+            target2embeds[target] = np.array(embeds)
+
+        return target2embeds, skip_count
+
+
+def retrieve_embedalign_vectors(model_path, candidates_dict, word2index, threshold):
+    model = torch.load(model_path)
+    target2means = {}
+    target2vars = {}
+
+    # Retrieve parameters
+    embeddings = model['embeddings.weight']
+    mean_W = model['inference_net.affine1.weight']
+    var_W = model['inference_net.affine2.weight']
+    mean_b = model['inference_net.affine1.bias']
+    var_b = model['inference_net.affine2.bias']
+    softplus = Softplus()
+
+    skip_count = 0
+    for target, alternatives in candidates_dict.items():
+        try:
+            target_id = word2index[target]
+        except KeyError:
+            # target word not in dictionary, skip it
+            skip_count += 1
+            continue
+
+        missing_alter_count = 0
+        alternative_ids = []
+
+        for a in alternatives:
+            try:
+                alternative_ids += [word2index[a]]
+            except KeyError:
+                # alternative word not in dictionary
+                missing_alter_count += 1
+                if missing_alter_count > threshold:
+                    # if too few alternatives are in the vocabulary, skip example
+                    skip_count += 1
+                    continue
+
+
+        embeds = [embeddings[w] for w in [target_id] + alternative_ids]
+        embeds = torch.stack(embeds)
+
+        mean_vecs = embeds @ torch.t(mean_W) + mean_b
+        var_vecs = embeds @ torch.t(var_W) + var_b
+        var_vecs = softplus(var_vecs)
+
+        target2means[target] = mean_vecs.numpy()
+        target2vars[target] = var_vecs.numpy()
+
+    return target2means, target2vars, skip_count
+
 
 
 if __name__ == "__main__":
@@ -105,6 +195,14 @@ if __name__ == "__main__":
     with open('data/lst/lst_test.preprocessed', 'r') as f:
         lines = map(str.strip, f.readlines())
 
+
+    # target2means, target2vars, skip_count = retrieve_embedalign_vectors('EmbedAlignModel.p', candidates, word2idx, 7)
+    target2embeds, skip_count = retrieve_skipgram_vectors('skipgram-embeds-100.txt', candidates, 7)
+
+    print('{} examples were skipped.'.format(skip_count))
+
+
+
     skipped_entries = 0
     with open('lst.out', 'w') as f_out:
         for line in lines:
@@ -113,25 +211,33 @@ if __name__ == "__main__":
             target_word = target.split('.')[0]
             sentence = sentence.split()
 
-            try:
-                target_id = word2idx[target_word]
-            except KeyError:
-                skipped_entries += 1
-                continue
 
             # sentence_ids = [word2idx[w] for w in sentence if w in word2idx.keys()]
             alternatives = candidates[target_word]
             alternative_ids = [word2idx[w] for w in alternatives if w in word2idx.keys()]
 
+            # try:
+            #     mean_matrix = target2means[target_word]
+            #     var_matrix = target2vars[target_word]
+            # except KeyError:
+            #     skipped_entries += 1
+
+            try:
+                embed_matrix = target2embeds[target_word]
+            except KeyError:
+                skipped_entries += 1
+                continue
+
             # Score alternatives
-            scores = skipgram_scores(None, target_id, alternative_ids, sentence, 'test')
+            scores = skipgram_scores(embed_matrix, sentence, 'cosine')
+            # scores = embedalign_scores(mean_matrix, var_matrix)
 
             # Print preamble
             print('RANKED\t{} {}'.format(target, sent_id), file=f_out, end='')
 
             # Sort alternative by their scores
             words_and_scores = list(zip(alternatives, scores))
-            words_and_scores.sort(key=lambda t: t[1], reverse=True)
+            words_and_scores.sort(key=lambda t: t[1], reverse=False)  # True for skipgram
 
             # Write ranked alternatives and their scores to file
             for w, s in words_and_scores:
