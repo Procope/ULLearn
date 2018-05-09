@@ -3,6 +3,7 @@ import pickle
 import torch
 from torch.nn import Softplus
 from sklearn.preprocessing import normalize
+import argparse
 
 def skipgram_scores(embeds, context, mode='cosine'):
     '''
@@ -12,7 +13,7 @@ def skipgram_scores(embeds, context, mode='cosine'):
     Proceedings of the 1st Workshop on Vector Space Modeling for Natural Language Processing. 2015.
     '''
     t, alternatives = embeds[0], embeds[1:]
-    print(t.shape, alternatives.shape)
+
     if mode == 'cosine':
         scores = alternatives @ t
         scores = scores.tolist()
@@ -94,14 +95,15 @@ def retrieve_skipgram_vectors(model_path, candidates_dict, threshold):
             embed = np.array([float(x[:-1]) for x in line[1:]])
             word2embed[word] = embed
 
-        for e in word2embed.values(): e /= np.linalg.norm(e)
+        for e in word2embed.values():
+            e /= np.linalg.norm(e)
 
         target2embeds = {}
 
         skip_count = 0
         for target, alternatives in candidates_dict.items():
             embeds = []
-            missing_alter_count = 0
+            alternative_count = 0
 
             if target not in word2embed:
                 skip_count += 1
@@ -112,14 +114,14 @@ def retrieve_skipgram_vectors(model_path, candidates_dict, threshold):
             for w in alternatives:
                 try:
                     embeds.append(word2embed[w])
+                    alternative_count += 1
                 except KeyError:
-                    missing_alter_count += 1
-                    if missing_alter_count > threshold:
-                        # if too few alternatives are in the vocabulary, skip example
-                        skip_count += 1
-                        continue
+                    continue
 
-            target2embeds[target] = np.array(embeds)
+            if alternative_count > threshold:
+                target2embeds[target] = np.array(embeds)
+            else:
+                skip_count += 1
 
         return target2embeds, skip_count
 
@@ -146,20 +148,20 @@ def retrieve_embedalign_vectors(model_path, candidates_dict, word2index, thresho
             skip_count += 1
             continue
 
-        missing_alter_count = 0
+        alternative_count = 0
         alternative_ids = []
 
         for a in alternatives:
             try:
                 alternative_ids += [word2index[a]]
+                alternative_count += 1
             except KeyError:
                 # alternative word not in dictionary
-                missing_alter_count += 1
-                if missing_alter_count > threshold:
-                    # if too few alternatives are in the vocabulary, skip example
-                    skip_count += 1
-                    continue
+                pass
 
+        if alternative_count < threshold:
+            skip_count += 1
+            continue
 
         embeds = [embeddings[w] for w in [target_id] + alternative_ids]
         embeds = torch.stack(embeds)
@@ -176,6 +178,13 @@ def retrieve_embedalign_vectors(model_path, candidates_dict, word2index, thresho
 
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model', type=str, help='skipgram or embedalign')
+    parser.add_argument('--threshold', type=int, default=10, help='If we have less than threshold candidates, skip this target word')
+    args = parser.parse_args()
+
+    model = args.model.lower()
 
     with open('w2i-europarl-en.p', 'rb') as f:
         word2idx = pickle.load(f)
@@ -196,8 +205,19 @@ if __name__ == "__main__":
         lines = map(str.strip, f.readlines())
 
 
-    # target2means, target2vars, skip_count = retrieve_embedalign_vectors('EmbedAlignModel.p', candidates, word2idx, 7)
-    target2embeds, skip_count = retrieve_skipgram_vectors('skipgram-embeds-100.txt', candidates, 7)
+    if model == 'embedalign':
+        target2means, target2vars, skip_count = retrieve_embedalign_vectors('EmbedAlignModel.p',
+                                                                            candidates,
+                                                                            word2idx,
+                                                                            args.threshold)
+    elif model == 'skipgram':
+        target2embeds, skip_count = retrieve_skipgram_vectors('skipgram-embeds-100.txt',
+                                                              candidates,
+                                                              args.threshold)
+    elif model == 'bsg':
+        raise NotImplementedError()
+    else:
+        raise ValueError()
 
     print('{} examples were skipped.'.format(skip_count))
 
@@ -216,21 +236,25 @@ if __name__ == "__main__":
             alternatives = candidates[target_word]
             alternative_ids = [word2idx[w] for w in alternatives if w in word2idx.keys()]
 
-            # try:
-            #     mean_matrix = target2means[target_word]
-            #     var_matrix = target2vars[target_word]
-            # except KeyError:
-            #     skipped_entries += 1
-
-            try:
-                embed_matrix = target2embeds[target_word]
-            except KeyError:
-                skipped_entries += 1
-                continue
+            if model == 'embedalign':
+                try:
+                    mean_matrix = target2means[target_word]
+                    var_matrix = target2vars[target_word]
+                except KeyError:
+                    skipped_entries += 1
+            elif model == 'skipgram':
+                try:
+                    embed_matrix = target2embeds[target_word]
+                except KeyError:
+                    skipped_entries += 1
+                    continue
 
             # Score alternatives
-            scores = skipgram_scores(embed_matrix, sentence, 'cosine')
-            # scores = embedalign_scores(mean_matrix, var_matrix)
+            if model == 'embedalign':
+                scores = embedalign_scores(mean_matrix, var_matrix)
+            elif model == 'skipgram':
+                scores = skipgram_scores(embed_matrix, sentence, 'cosine')
+            #
 
             # Print preamble
             print('RANKED\t{} {}'.format(target, sent_id), file=f_out, end='')
