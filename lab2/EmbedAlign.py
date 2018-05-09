@@ -63,7 +63,7 @@ class EmbedAlign(Module):
 
         z = z_mean + torch.exp(z_var / 2.) * epsilon  # make sure z is [b,m,d]
 
-        logits_l1 = self.affine_l1(z)
+        logits_l1 = self.affine_l1(z)  # [b,m,V_l1]
         cat_l1 = self.softmax(logits_l1)
 
         logits_l2 = self.affine_l2(z)

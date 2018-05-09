@@ -68,16 +68,17 @@ for epoch in range(1, num_epochs+1):
 
     overall_loss = 0
     model.train()
-    optimizer.zero_grad()
 
     for batch_en, batch_fr in zip(batches_en[:1000], batches_fr[:1000]):
 
         batch_en = Variable(batch_en, requires_grad=False)
         batch_fr = Variable(batch_fr, requires_grad=False)
 
+        optimizer.zero_grad()
+
         loss = model(batch_en, batch_fr)
 
-        overall_loss += loss.data[0]
+        overall_loss += loss.item()
         loss.backward()
         optimizer.step()
 
