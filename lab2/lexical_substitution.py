@@ -192,7 +192,6 @@ if __name__ == "__main__":
     with open('data/lst/lst.gold.candidates', 'r') as f:
         lines = map(str.strip, f.readlines())
 
-
     candidates = {}
     for line in lines:
         target, rest = line.split('.', maxsplit=1)
@@ -206,7 +205,7 @@ if __name__ == "__main__":
 
 
     if model == 'embedalign':
-        target2means, target2vars, skip_count = retrieve_embedalign_vectors('EmbedAlignModel.p',
+        target2means, target2vars, skip_count = retrieve_embedalign_vectors('EmbedAlignModel-10.p',
                                                                             candidates,
                                                                             word2idx,
                                                                             args.threshold)

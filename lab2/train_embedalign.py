@@ -15,6 +15,7 @@ parser.add_argument('--epochs', type=int, default=30, help='Number of epochs to 
 parser.add_argument('--lr', type=float, default=0.001, help='Initial learning rate.')
 parser.add_argument('--test', type=int, default=None, help='Number of sentences to consider for testing')
 parser.add_argument('--n_batches', type=int, default=None, help='Number of training batches')
+parser.add_argument('--context', action='store_true', default=False, help='Encode words with their context')
 # parser.add_argument('--save', type=str, default='skipgram-embeds.txt', help='Path of the output text file containing embeddings')
 
 
@@ -24,8 +25,12 @@ batch_size = args.batch
 num_epochs = args.epochs
 lr = args.lr
 num_batches = args.n_batches
+with_context = args.context
+
 # output_path = args.save
 print('Embedding dimensionality: {}'.format(embed_dim))
+if with_context:
+    print('Encoding words with context.')
 print('Batch size: {}'.format(batch_size))
 print('Number of sentence pairs: {}'.format(batch_size * num_batches))
 print('{} epochs. Initial learning rate: {}'.format(num_epochs, lr))
@@ -51,7 +56,8 @@ vocab_size_fr = len(word2idx_fr)
 
 model = EmbedAlign(vocab_size_en,
                   vocab_size_fr,
-                  embed_dim)
+                  embed_dim,
+                  with_context)
 
 optimizer = torch.optim.Adam(model.parameters())
 

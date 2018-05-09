@@ -11,15 +11,22 @@ class EmbedAlign(Module):
     def __init__(self,
                  vocab_size_l1,
                  vocab_size_l2,
-                 embed_dim
+                 embed_dim,
+                 context
                  ):
 
         super(EmbedAlign, self).__init__()
 
+        self.context = context
 
         self.vocab_size_l1 = vocab_size_l1
         self.vocab_size_l2 = vocab_size_l2
-        self.embed_dim = embed_dim  # 'd' in comments
+        self.embed_dim = embed_dim
+
+        if self.context:
+            self.h_dim = 2 * embed_dim  # 'd' in comments
+        else:
+            self.h_dim = embed_dim
 
         self.embeddings = Embedding(vocab_size_l1, embed_dim)
         self.affine_l1 = Linear(embed_dim, vocab_size_l1)
@@ -28,7 +35,8 @@ class EmbedAlign(Module):
         self.softmax = Softmax(dim=2)
         self.cross_entropy = CrossEntropyLoss()
 
-        self.inference_net = InferenceNet(embed_dim, embed_dim)
+
+        self.inference_net = InferenceNet(self.h_dim, embed_dim)
 
 
     def forward(self,
@@ -54,9 +62,16 @@ class EmbedAlign(Module):
         align_probs = torch.unsqueeze(align_probs, dim=1)
         align_probs = align_probs.repeat(1, n, 1)
 
+        if self.context:
+            sums = torch.sum(embedded_l1, dim=1)
+            sums = sums.unsqueeze(1).repeat(1, m, 1)
+            context = sums - embedded_l1
+            context /= m - 1
+            h = torch.cat((embedded_l1, context), dim=2)  # [b,m,2d]
+        else:
+            h = embedded_l1  # [b,m,d]
 
-
-        z_mean, z_var = self.inference_net(embedded_l1)  # [b,m,d], [b,m,d]
+        z_mean, z_var = self.inference_net(h)  # [b,m,d], [b,m,d]
 
         std_normal = MultivariateNormal(torch.zeros(self.embed_dim), torch.eye(self.embed_dim))
         epsilon = std_normal.sample()
@@ -80,7 +95,6 @@ class EmbedAlign(Module):
         cross_entropy_l2 = self.cross_entropy(p_l2_zx.permute([0,2,1]), batch_l2)
         cross_entropy_l2 = torch.sum(cross_entropy_l2 * l2_mask, dim=1)  # [b]
         cross_entropy_l2 = torch.mean(cross_entropy_l2, dim=0)  # []
-
 
 
         z_var_squared = z_var*z_var

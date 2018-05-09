@@ -15,13 +15,11 @@ class InferenceNet(Module):
         self.softplus = Softplus()
 
 
-    def forward(self,
-                input  # C x 2*in_features
-                ):
-
+    def forward(self, input):
         locations = self.affine1(input)
         scales = self.softplus(self.affine2(input))
 
         return locations, scales
+
 
 
