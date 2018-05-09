@@ -55,11 +55,14 @@ model = EmbedAlign(vocab_size_en,
 
 optimizer = torch.optim.Adam(model.parameters())
 
+
 batches = list(zip(batches_en, batches_fr))
 shuffle(batches)
+len(batches_en)
 
 if num_batches:
     batches = batches[:num_batches]
+
 
 print('--- Train ---')
 
@@ -69,7 +72,7 @@ for epoch in range(1, num_epochs+1):
     overall_loss = 0
     model.train()
 
-    for batch_en, batch_fr in zip(batches_en[:1000], batches_fr[:1000]):
+    for batch_en, batch_fr in batches:
 
         batch_en = Variable(batch_en, requires_grad=False)
         batch_fr = Variable(batch_fr, requires_grad=False)
