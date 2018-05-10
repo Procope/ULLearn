@@ -19,6 +19,10 @@ def skipgram_scores(embeds, context, mode='cosine'):
     c = context
     c_len = len(context)
 
+    # print(t)
+    # print(alternatives)
+    # print(context)
+
     if mode == 'cosine':
         scores = alternatives @ t
         scores = scores.tolist()
@@ -39,14 +43,14 @@ def skipgram_scores(embeds, context, mode='cosine'):
 
     elif mode == 'mult':
         scores = [
-                (((u @ v + 1) / 2) * np.prod((c @ a + 1) / 2)) ** (1 / (c_len + 1))
+                (((t @ a + 1) / 2) * np.prod((c @ a + 1) / 2)) ** (1 / (c_len + 1))
                 for a
                 in alternatives
         ]
 
     elif mode == 'balmult':
         scores = [
-                ((((u @ v + 1) / 2) ** c_len) * np.prod((c @ a + 1) / 2)) ** (2 * c_len)
+                ((((t @ a + 1) / 2) ** c_len) * np.prod((c @ a + 1) / 2)) ** (2 * c_len)
                 for a
                 in alternatives
         ]
@@ -286,16 +290,31 @@ if __name__ == "__main__":
             with open('data/lst/lst_test.preprocessed', 'r') as f_in:
                 lines = list(map(str.strip, f_in.readlines()))
 
-            with open('models/skipgram-embeds-100.txt', 'r') as f_in:
-                embeddings = list(map(str.strip, f_in.readlines()))
+            with open('/Users/mario/Downloads/skipgram-europarl-en-5w-100btc-5000.txt', 'r') as f_in:
+                embeds_file = list(map(str.strip, f_in.readlines()))
+
+                # retrieve embedding dimensions from file
+                first_line = embeds_file[0]
+                _, vector_str = first_line.split(" ", maxsplit=1)
+                embed_dims = len(vector_str.split(", "))
+
+                embeddings = np.empty((len(embeds_file), embed_dims))
+                for line in embeds_file:
+                    term, vector_str = first_line.split(" ", maxsplit=1)
+                    vector = np.array(vector_str.split(", "))
+                    embeddings[word2idx[term]] = vector
+
+
 
             for line in lines:
                 target, sent_id, target_position, sentence = line.split('\t')
 
                 target_word = target.split('.')[0]
                 context_ids = [word2idx[w] for w in sentence.split() if w in word2idx.keys()]
+                # print(context_ids)
                 context_embeds = np.array([embeddings[i] for i in context_ids])
-
+                # print('embeds\n\n')
+                # print(context_embeds)
                 alternatives = candidates[target_word]
                 alternative_ids = [word2idx[w] for w in alternatives if w in word2idx.keys()]
 
@@ -307,7 +326,7 @@ if __name__ == "__main__":
 
 
                 # Score alternatives
-                scores = skipgram_scores(embed_matrix, context_embeds, 'cosine')
+                scores = skipgram_scores(embed_matrix, context_embeds, skipgram_mode)
 
                 # Print preamble
                 print('RANKED\t{} {}'.format(target, sent_id), file=f_out, end='')
