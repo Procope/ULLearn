@@ -46,28 +46,42 @@ class BayesianSG(Module):
         center_embed = embeddings(Variable(center_id))  # [b,d] #todo: move Variable to preproc
         context_embeds = embeddings(Variable(context_ids))  # [b,c,d]
 
+        # Represent words in context
         center_embed = center_embed.unsqueeze(1)  # [b,1,d]
         center_embed = center_embed.repeat(1, len(context_ids), 1)  # [b,c,d]
         encoder_input = torch.cat((center_embed, context_embeds), dim=2)  # [b,c,2d]
 
+        # Encode context-aware representations
         h = self.relu(self.encoder(encoder_input)) # [b,c,2d]
         h = torch.sum(h, dim=1)
 
-        mean_vecs = self.affine_mean(h)
-        var_vecs = self.softplus(self.affine_var(h))
+        # Inference step
+        mean = self.affine_mean(h)
+        var = self.softplus(self.affine_var(h))
 
+        # Reparametrization
         epsilon = self.std_normal.sample()
-        z = mean_vecs + torch.exp(var_vecs / 2.) * epsilon
+        z = mean + torch.exp(var / 2.) * epsilon
 
-        context_unigram_p = self.unigram_probs[context_ids]  # [b,c]
+        # Prepare arguments of the loss
+        # context_unigram_p = self.unigram_probs[context_ids]  # [b,c]
         categorical = self.softmax(self.affine_vocab(z))  # [b,c,V]
 
+        # todo: multiply by center_embed?
+        prior_mean = self.prior_means[center_id]
+        prior_var = softplus(self.prior_sigma[center_id])
 
-        # for j in self.vocab_size:
-        #     p_j = self.unigram_probs[j]
+        # Compute the loss
+        kl = -0.5 + torch.log(prior_var / var) + (0.5 * (var ** 2 + (mean - prior_mean) ** 2) / (prior_var ** 2))
 
+        reconstruction_error = 0
+        for idx in context_ids:
+            reconstruction_error += torch.log(categorical[i])
 
-        # categorical = self.affine_vocab(z) [b,c,V]
+        loss = reconstruction_error - kl
+
+        return loss
+
 
 
 
