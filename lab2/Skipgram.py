@@ -27,9 +27,6 @@ class Skipgram(Module):
                 pos_context_id,
                 neg_context_ids):
         """
-        Forward process. As pytorch designed, all variables must be batch format,
-        so all input of this method is a list of word id.
-
         Args: center_id: list of center word ids for positive word pairs.
               pos_context_id: list of neighbor word ids for positive word pairs.
               neg_context_ids: list of neighbor word ids for negative word pairs.

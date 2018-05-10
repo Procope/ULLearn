@@ -26,7 +26,7 @@ num_batches = args.n_batches
 print('Embedding dimensionality: {}'.format(embed_dim))
 print('Window size: {}'.format(window_size))
 print('Batch size: {}'.format(batch_size))
-print('Number of sentence pairs: {}'.format(batch_size * num_batches))
+print('Number of sentences: {}'.format(batch_size * num_batches))
 print('Number of epochs: {}'.format(num_epochs))
 print('Initial learning rate: {}'.format(lr))
 
@@ -42,7 +42,7 @@ print('Initial learning rate: {}'.format(lr))
 
 #V = len(word2idx)
 
-corpus, word2idx, idx2word = read_corpus('data/europarl/training.en', n_sentences=100)
+corpus, word2idx, idx2word = read_corpus('data/europarl/training.en', n_sentences=batch_size*num_batches)
 data = create_skipgrams(corpus, word2idx, window_size, batch_size)
 V = len(word2idx)
 print("done with data")
