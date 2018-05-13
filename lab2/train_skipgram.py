@@ -42,11 +42,13 @@ print('Initial learning rate: {}'.format(lr))
 
 #V = len(word2idx)
 
-corpus, word2idx, idx2word = read_corpus('data/europarl/training.en', n_sentences=batch_size*num_batches)
-data = create_skipgrams(corpus, word2idx, window_size, batch_size)
+print("Load data.")
+corpus, word2idx, counter = read_corpus('data/europarl/training.en', n_sentences=batch_size*num_batches)
+data = create_skipgrams(corpus, word2idx, counter, window_size, batch_size)
 V = len(word2idx)
-print("done with data")
 
+
+print('Train.')
 model = Skipgram(V, embed_dim)
 optimizer = torch.optim.SGD(model.parameters(), lr=lr)
 
@@ -54,7 +56,6 @@ optimizer = torch.optim.SGD(model.parameters(), lr=lr)
 for epoch in range(1, num_epochs + 1):
     overall_loss = 0
     model.train()
-    optimizer.zero_grad()
 
     for batch in data:
 
@@ -62,20 +63,22 @@ for epoch in range(1, num_epochs + 1):
         pos_context_id = torch.LongTensor(batch[1])
         neg_context_ids = torch.stack(batch[2])
 
+        optimizer.zero_grad()
+
         loss = model(center_id, pos_context_id, neg_context_ids)
 
-        overall_loss += loss.data[0]
+        overall_loss += loss.item()
         loss.backward()
         optimizer.step()
 
     # if epoch % 10 == 0:
     print('Loss at epoch {}: {}'.format(epoch, overall_loss))
-    print(model.input_embeds.weight[:3])
+    # print(model.input_embeds.weight[:3])
 
 
 # Write embeddings to file
 embeddings = model.input_embeds.weight
-
+idx2word = {w: i for (i,w) in word2idx.items()}
 with open('skipgram-europarl-en-{}w-{}btc-{}.txt'.format(window_size, batch_size, num_batches * batch_size), 'w') as f_out:
     for idx in range(embeddings.size()[0]):
         word = idx2word[idx]

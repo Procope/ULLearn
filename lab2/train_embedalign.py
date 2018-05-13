@@ -42,13 +42,13 @@ print('--- Load data ---')
 
 # batches_en, batches_fr = create_parallel_batches(corpus_en, corpus_fr, word2idx_en, word2idx_fr, batch_size=batch_size)
 
-with open('w2i-europarl-en.p', 'rb') as f_in:
+with open('models/w2i-europarl-en.p', 'rb') as f_in:
     word2idx_en = pickle.load(f_in)
 
-with open('w2i-europarl-fr.p', 'rb') as f_in:
+with open('models/w2i-europarl-fr.p', 'rb') as f_in:
     word2idx_fr = pickle.load(f_in)
 
-with open('embedalign-europarl-100btc.p', 'rb') as f_in:
+with open('models/embedalign-europarl-100btc.p', 'rb') as f_in:
     batches_en, batches_fr = pickle.load(f_in)
 
 vocab_size_en = len(word2idx_en)

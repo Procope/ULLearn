@@ -33,13 +33,14 @@ def read_corpus(corpus_path, word_limit=10000, n_sentences=None):
     # vocabulary = [w for w in vocabulary if counter[w] > threshold]
 
     word2idx = {w: idx for (idx, w) in enumerate(vocabulary)}
-    idx2word = {idx: w for (w, idx) in word2idx.items()}
+    # idx2word = {idx: w for (w, idx) in word2idx.items()}
 
-    return tokenized_corpus, word2idx, idx2word
+    return tokenized_corpus, word2idx, counter
 
 
 def create_skipgrams(tokenized_corpus,
                      word2idx,
+                     counter,
                      window_size,
                      batch_size):
 
@@ -49,14 +50,22 @@ def create_skipgrams(tokenized_corpus,
     with open("stop_words_en.txt", "r") as f:
         stop_words = list(map(str.strip, f.readlines()))
 
+    vocab, freqs = map(list,zip(*counter.items()))
+    freqs = np.array(freqs)
+    freqs = freqs ** (3/4)
+    freqs = freqs / np.sum(freqs)
+
     for i, sentence in enumerate(tokenized_corpus, start=1):
 
         if i % 50000 == 0:
             print('{} sentences processed.'.format(i))
 
-        sentence_ids = [word2idx[w] if (w in word2idx.keys() and w not in stop_words) else word2idx['-UNK-'] for w in sentence]
-        # print(sentence_ids)
-        #sentence_ids = [word2idx[w] for w in sentence if w in word2idx.keys()]
+        sentence_ids = [word2idx[w]
+                        if (w in word2idx.keys()
+                            and w not in stop_words)
+                        else word2idx['-UNK-']
+                        for w in sentence
+                        ]
 
         for center_word in range(len(sentence_ids)):
 
@@ -70,7 +79,9 @@ def create_skipgrams(tokenized_corpus,
                 context_word_id = sentence_ids[context_word]
 
                 # negative samples: draw from unigram distribution to the 3/4th power
-                neg_context_ids = torch.LongTensor(np.random.randint(0, V, 2 * window_size))
+                neg_context = np.random.choice(vocab, (2 * window_size), replace=False, p=freqs)
+                neg_context_ids = torch.tensor([word2idx[w] for w in neg_context])
+
                 triplets.append((sentence_ids[center_word], context_word_id, neg_context_ids))
 
     # shuffle
@@ -151,12 +162,68 @@ def create_monolingual_batches(tokenized_corpus, word2idx, batch_size):
     return batches
 
 
-# SKIPGRAM ###########################################################
-corpus, word2idx, _ = read_corpus('data/europarl/training.en', n_sentences=500)
-data = create_skipgrams(corpus, word2idx, 5, 100)
+def create_BSG_data(tokenized_corpus,
+                     word2idx,
+                     counter,
+                     window_size,
+                     batch_size):
 
-pickle.dump(data, open("skipgram-europarl-en-5w-100btc-500.p", "wb"))
-pickle.dump(word2idx, open("w2i-skipgram-europarl-en-500.p", "wb"))
+    tuples = []
+    V = len(word2idx)
+
+    with open("stop_words_en.txt", "r") as f:
+        stop_words = list(map(str.strip, f.readlines()))
+
+    for i, sentence in enumerate(tokenized_corpus, start=1):
+
+        if i % 50000 == 0:
+            print('{} sentences processed.'.format(i))
+
+        sentence_ids = [word2idx[w]
+                        if (w in word2idx.keys()
+                            and w not in stop_words)
+                        else word2idx['-UNK-']
+                        for w in sentence
+                        ]
+
+        for center_word in range(len(sentence_ids)):
+
+            context_ids = [sentence_ids[pos]
+                            if (pos >= 0 and
+                                pos < len(sentence_ids)
+                                and center_word != sentence_ids[pos])
+                            else 0
+                            for pos in range(-window_size, window_size + 1)
+                            ]
+            tuples.append((sentence_ids[center_word], context_ids))
+
+    # shuffle
+    tuples = random.sample(tuples, len(tuples))
+
+    n_batches = len(tuples) // batch_size
+    cutoff = len(tuples) - n_batches * batch_size
+
+    if cutoff > 0:
+        tuples = tuples[:-cutoff]
+
+    batches = [tuples[x: x + batch_size] for x in range(0, len(tuples), batch_size)]
+    batches_new = []
+
+    for batch in batches:
+        center_id_batch = [tupl[0] for tupl in batch]
+        context_id_batch = [tupl[1] for tupl in batch]
+        batches_new.append((center_id_batch, context_id_batch))
+
+    return batches_new
+
+
+
+# SKIPGRAM ###########################################################
+corpus, word2idx, counter = read_corpus('data/europarl/training.en', n_sentences=100)
+data = create_BSG_data(corpus, word2idx, counter, 5, 100)
+
+# pickle.dump(data, open("skipgram-europarl-en-5w-100btc-500.p", "wb"))
+# pickle.dump(word2idx, open("w2i-skipgram-europarl-en-500.p", "wb"))
 # pickle.dump(idx2word, open("i2w-skipgram-europarl-en.p", "wb" ))
 ######################################################################
 

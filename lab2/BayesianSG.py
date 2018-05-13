@@ -12,7 +12,7 @@ class BayesianSG(Module):
         super(BayesianSG, self).__init__()
 
         # Sizes
-        self.vocab_size_l2 = vocab_size_l2
+        self.vocab_size = vocab_size
         self.embed_dim = embed_dim
 
         # Priors
