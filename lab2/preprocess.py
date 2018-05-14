@@ -80,7 +80,12 @@ def create_skipgrams(tokenized_corpus,
 
                 # negative samples: draw from unigram distribution to the 3/4th power
                 neg_context = np.random.choice(vocab, (2 * window_size), replace=False, p=freqs)
-                neg_context_ids = torch.tensor([word2idx[w] for w in neg_context])
+                neg_context_ids = torch.tensor([
+                                               word2idx[w] if
+                                               w in word2idx
+                                               else 0
+                                               for w in neg_context
+                                               ])
 
                 triplets.append((sentence_ids[center_word], context_word_id, neg_context_ids))
 
