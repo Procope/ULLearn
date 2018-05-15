@@ -32,17 +32,17 @@ print('Initial learning rate: {}'.format(lr))
 
 
 
-# with open('w2i-skipgram-europarl-en-500.p', 'rb') as f_in:
-#   word2idx = pickle.load(f_in)
+with open('w2i-skipgram-europarl-en-5w-100btc-5000.p', 'rb') as f_in:
+    word2idx = pickle.load(f_in)
 
-# with open('skipgram-europarl-en-5w-100btc-500.p', 'rb') as f_in:
-#   data = pickle.load(f_in)
+with open('skipgram-europarl-en-5w-100btc-5000.p', 'rb') as f_in:
+    data = pickle.load(f_in)
 
 #V = len(word2idx)
 
 print("Load data.")
-corpus, word2idx, counter = read_corpus('data/europarl/training.en', n_sentences=batch_size*num_batches)
-data = create_skipgrams(corpus, word2idx, counter, window_size, batch_size)
+# corpus, word2idx, counter = read_corpus('data/europarl/training.en', n_sentences=batch_size*num_batches)
+# data = create_skipgrams(corpus, word2idx, counter, window_size, batch_size)
 V = len(word2idx)
 
 
@@ -76,8 +76,8 @@ for epoch in range(1, num_epochs + 1):
 
 # Write embeddings to file
 embeddings = model.input_embeds.weight
-idx2word = {w: i for (i,w) in word2idx.items()}
-with open('skipgram-europarl-en-{}w-{}btc-{}.txt'.format(window_size, batch_size, num_batches * batch_size), 'w') as f_out:
+idx2word = {i: w for (w,i) in word2idx.items()}
+with open('skipgram-europarl-en-{}w-{}btc-sent{}-lr{}.txt'.format(window_size, batch_size, num_batches * batch_size, lr), 'w') as f_out:
     for idx in range(embeddings.size()[0]):
         word = idx2word[idx]
 
