@@ -224,7 +224,7 @@ def create_BSG_data(tokenized_corpus,
 
 
 # SKIPGRAM ###########################################################
-corpus, word2idx, counter = read_corpus('data/europarl/training.en', n_sentences=5)
+corpus, word2idx, counter = read_corpus('data/europarl/training.en', n_sentences=5000)
 data = create_skipgrams(corpus, word2idx, counter, 5, 100)
 
 pickle.dump(data, open("skipgram-europarl-en-5w-100btc-5000.p", "wb"))
