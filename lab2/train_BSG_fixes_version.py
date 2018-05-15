@@ -3,7 +3,7 @@ import torch
 import argparse
 from torch.autograd import Variable
 import pickle
-from BayesianSG import BayesianSG
+from BayesianSG_fixes_version import BayesianSG
 from preprocess import read_corpus, create_skipgrams, create_BSG_data
 
 
@@ -12,7 +12,7 @@ parser.add_argument('--dims', type=int, default=100, help='Word vector dimension
 parser.add_argument('--window', type=int, default=5, help='One-sided window size')
 parser.add_argument('--batch', type=int, default=100, help='Number of batches')
 parser.add_argument('--epochs', type=int, default=50, help='Number of epochs to train.')
-parser.add_argument('--lr', type=float, default=0.0001, help='Initial learning rate.')
+parser.add_argument('--lr', type=float, default=0.001, help='Initial learning rate.')
 parser.add_argument('--n_batches', type=int, default=50, help='Number of batches.')
 
 args = parser.parse_args()
@@ -42,7 +42,8 @@ model = BayesianSG(V, embed_dim, None)  # todo: add unigram probs
 
 # if we do not want gradients w.r.t. embeds
 
-optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
+optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
+#optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
 # Train
 for epoch in range(1, num_epochs + 1):

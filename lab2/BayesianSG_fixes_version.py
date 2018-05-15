@@ -24,7 +24,7 @@ class BayesianSG(Module):
 
         # Inference
         self.embeddings = Embedding(vocab_size, embed_dim)
-        #self.embeddings.weight.requires_grad = False
+        self.embeddings.weight.requires_grad = False
 
         self.encoder = Linear(2 * embed_dim, 2 * embed_dim)
         self.affine_mean = Linear(2 * embed_dim, embed_dim)
@@ -40,6 +40,10 @@ class BayesianSG(Module):
         self.softplus = Softplus()
         self.relu = ReLU()
 
+        self.embeddings.weight.data.uniform_(-1, 1)
+        self.prior_means.weight.data.uniform_(-1, 1)
+        self.prior_vars.weight.data.uniform_(-1, 1)
+
     def forward(self,
                 center_id,
                 context_ids):
@@ -50,6 +54,8 @@ class BayesianSG(Module):
         center_embed = self.embeddings(Variable(center_id))  # [b,d] #todo: move Variable to preproc
         context_embeds = self.embeddings(Variable(context_ids))  # [b,c,d]
         print("context size", context_embeds.size())
+
+        batch_size = len(center_id)
 
         # Represent words in context
         center_embed = center_embed.unsqueeze(1)  # [b,1,d]
@@ -67,8 +73,9 @@ class BayesianSG(Module):
 
         # Inference step
         mean = self.affine_mean(h)
+        #print("----------------------------------", self.affine_var.weight)
         var = self.softplus(self.affine_var(h))
-        print("mean", mean.size(), "var", var.size())
+        #print("mean", mean.size(), "var", var.size())
         # Reparametrization
         epsilon = self.std_normal.sample()
         z = mean + torch.exp(var / 2.) * epsilon
@@ -88,55 +95,57 @@ class BayesianSG(Module):
         # Compute the loss
         # kl = -0.5 + torch.log(prior_var / var) + (0.5 * (var ** 2 + (mean - prior_mean) ** 2) / (prior_var ** 2))
         print("var", var.size())
-        a = torch.diag(var[1] ** 2)
-        print("cov", a.size())
 
         def kl_div(s0, s1, m_0, m_1):
             # u,l are cov matrices
             # m_1 and m_2 are mean vectors
             # print(s0.detach().numpy())
+            print(s0, s1, m_0, m_1)
+            print("s0", s0.size())
 
-            s0 = np.diag(s0.detach().numpy())
+            s0 = torch.diagflat(s0)
 
-            s1 = np.diag(s1.detach().numpy())
+            s1 = torch.diagflat(s1)
 
-            m_0 = m_0.detach().numpy()
-
-            m_1 = m_1.detach().numpy()
-
-            kl = 0.5 * (np.trace(np.matmul(np.linalg.inv(s1), s0))
-                        + np.matmul(np.matmul(np.transpose(m_1 - m_0), np.linalg.inv(s1)), (m_1 - m_0)) - s0.shape[0]
-                        + np.log(np.linalg.det(s1) / np.linalg.det(s0)))
+            kl = 0.5 * (torch.trace(torch.matmul(torch.inverse(s1), s0)) + torch.matmul(torch.matmul((m_1 - m_0), torch.inverse(s1)), (m_1 - m_0)) - self.embed_dim + torch.log(torch.det(s1) / torch.det(s0)))
+            print("kl", kl)
             return kl
 
         kl = []
 
-        for i in range(self.embed_dim):
+        for i in range(batch_size):
 
             kl.append(kl_div(var[i], prior_var[i], mean[i], prior_mean[i]))
 
-            #kl = -0.5 + torch.log(prior_var / var) + (0.5 * (var ** 2 + (mean - prior_mean) ** 2) / (prior_var ** 2))
-            #posterior = MultivariateNormal(mean[i], torch.diag(var[i])**2 )
-            #prior = MultivariateNormal(prior_mean[i], torch.diag(prior_var[i])**2 )
-            #print(torch.diag(var[i]) ** 2)
-            #print(torch.diag(prior_var[i]) ** 2)
-            #kl.append(torch.distributions.kl.kl_divergence(posterior, prior) * len(mean))
+            # kl = -0.5 + torch.log(prior_var / var) + (0.5 * (var ** 2 + (mean - prior_mean) ** 2) / (prior_var ** 2))
+            # posterior = MultivariateNormal(mean[i], torch.diag(var[i])**2 )
+            # prior = MultivariateNormal(prior_mean[i], torch.diag(prior_var[i])**2 )
+            # print(torch.diag(var[i]) ** 2)
+            # print(torch.diag(prior_var[i]) ** 2)
+            # kl.append(torch.distributions.kl.kl_divergence(posterior, prior) * len(mean))
 
-        kl = torch.tensor(kl)
+        # print(kl)
+
+        kl = torch.stack(kl)
 
         print("kl", kl.size())
 
         reconstruction_errors = []  # torch.zeros(self.embed_dim, self.embed_dim)
 
-        for cent_id, cont_ids in zip(torch.tensor(range(len(center_id))), context_ids):
+        for cent_id, cont_ids in enumerate(context_ids):
 
             reconstruction_error = 0
+
             for k in cont_ids:
-                a = torch.log(categorical[Variable(cent_id), Variable(k)])
-                print(a)
-                reconstruction_error += torch.log(categorical[Variable(cent_id), Variable(k)])
+                err = torch.log(categorical[torch.tensor(cent_id), torch.tensor(k)])
+                reconstruction_error += err
+
             reconstruction_errors.append(reconstruction_error)
 
         loss = torch.tensor(reconstruction_errors) - kl
 
-        return torch.sum(loss)
+        print("--------re--------", reconstruction_errors)
+        print("-------kl---------", kl)
+        print("loss", torch.mean(loss))
+
+        return torch.mean(loss)
