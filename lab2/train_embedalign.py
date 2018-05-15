@@ -59,7 +59,7 @@ model = EmbedAlign(vocab_size_en,
                   embed_dim,
                   with_context)
 
-optimizer = torch.optim.Adam(model.parameters())
+optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
 
 
 batches = list(zip(batches_en, batches_fr))
