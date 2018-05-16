@@ -13,7 +13,6 @@ parser.add_argument('--dims', type=int, default=100, help='Word vector dimension
 parser.add_argument('--batch_size', type=int, default=100, help='Batch size')
 parser.add_argument('--epochs', type=int, default=30, help='Number of epochs to train.')
 parser.add_argument('--lr', type=float, default=0.001, help='Initial learning rate.')
-parser.add_argument('--test', action='store_true', default=False, help='Whether to compute AER (no learning)')
 parser.add_argument('--n_batches', type=int, default=None, help='Number of training batches')
 parser.add_argument('--context', action='store_true', default=True, help='Encode words with their context')
 
