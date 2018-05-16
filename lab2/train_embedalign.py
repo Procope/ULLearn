@@ -10,18 +10,17 @@ from preprocess import read_corpus, create_parallel_batches
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dims', type=int, default=100, help='Word vector dimensionality')
-parser.add_argument('--batch', type=int, default=100, help='Batch size')
+parser.add_argument('--batch_size', type=int, default=100, help='Batch size')
 parser.add_argument('--epochs', type=int, default=30, help='Number of epochs to train.')
 parser.add_argument('--lr', type=float, default=0.001, help='Initial learning rate.')
-parser.add_argument('--test', type=int, default=None, help='Number of sentences to consider for testing')
+parser.add_argument('--test', action='store_true', default=False, help='Whether to compute AER (no learning)')
 parser.add_argument('--n_batches', type=int, default=None, help='Number of training batches')
-parser.add_argument('--context', action='store_true', default=False, help='Encode words with their context')
-# parser.add_argument('--save', type=str, default='skipgram-embeds.txt', help='Path of the output text file containing embeddings')
+parser.add_argument('--context', action='store_true', default=True, help='Encode words with their context')
 
 
 args = parser.parse_args()
 embed_dim = args.dims
-batch_size = args.batch
+batch_size = args.batch_size
 num_epochs = args.epochs
 lr = args.lr
 num_batches = args.n_batches
@@ -42,6 +41,7 @@ print('--- Load data ---')
 
 # batches_en, batches_fr = create_parallel_batches(corpus_en, corpus_fr, word2idx_en, word2idx_fr, batch_size=batch_size)
 
+
 with open('w2i-europarl-en-100btc-5000.p', 'rb') as f_in:
     word2idx_en = pickle.load(f_in)
 
@@ -54,17 +54,13 @@ with open('embedalign-europarl-100btc-5000.p', 'rb') as f_in:
 vocab_size_en = len(word2idx_en)
 vocab_size_fr = len(word2idx_fr)
 
-model = EmbedAlign(vocab_size_en,
-                  vocab_size_fr,
-                  embed_dim,
-                  with_context)
+model = EmbedAlign(vocab_size_en, vocab_size_fr, embed_dim, with_context)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
 
 batches = list(zip(batches_en, batches_fr))
 shuffle(batches)
-len(batches_en)
 
 if num_batches:
     batches = batches[:num_batches]
@@ -75,7 +71,7 @@ print('--- Train ---')
 # Train
 for epoch in range(1, num_epochs+1):
 
-    overall_loss = 0
+    overall_loss, overall_acc_l1, overall_acc_l2 = 0, 0, 0
     model.train()
 
     for batch_en, batch_fr in batches:
@@ -85,14 +81,16 @@ for epoch in range(1, num_epochs+1):
 
         optimizer.zero_grad()
 
-        loss = model(batch_en, batch_fr)
+        loss, acc_l1, acc_l2 = model(batch_en, batch_fr)
 
         overall_loss += loss.item()
+        overall_acc_l1 += acc_l1.item()
+        overall_acc_l2 += acc_l2.item()
+
         loss.backward()
         optimizer.step()
 
     # if epoch % 5 == 0:
     print('Loss at epoch {}: {}'.format(epoch, overall_loss / epoch))
-
 
 torch.save(model.state_dict(), 'EmbedAlignModel-{}btc-{}.p'.format(batch_size, batch_size * num_batches))
