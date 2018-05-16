@@ -4,18 +4,25 @@ In this lab, we implement and train three word representation models: one, **Ski
 
 ---------------
 
-Setting up:
+**Setup**
 - `cd ULLearn/lab2`
 - `python setup.py install`
 
-Training:
+**Training**
+
 - `python skipgram/train_skipgram.py --batch_size 100 --n_batches 50 --lr 0.001`
 - `python embedalign/train_embedalign.py --batch_size 100 --n_batches 50 --context`
 - `python bsg/train_bsg.py --batch_size 100 --n_batches 50 --epochs 50`
 
-Evaluating:
+**Lexical substitution**
+Some examples:
 - `python utils/lexical_substitution.py --model skipgram --w2i <w2i.p> --model_path <wmbeds.txt> --skipgram_mode add`
 - `python utils/lexical_substitution.py --model embedalign --w2i <w2i.p> --model_path <model.p>`
 - `python utils/lexical_substitution.py --model bsg --w2i <w2i.p> --model_path <model.p>`
+
+Each of these will produce an output file `lst.out`. To evaluate, run:
+- `python data/lst/lst_gap.py data/lst/lst_test.gold lst.out out no-mwe`
+
+**Alignment Error Rate**
 - `python embedalign/test_embedalign.py --path <model.p>`
 
