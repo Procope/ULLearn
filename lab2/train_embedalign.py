@@ -96,17 +96,3 @@ for epoch in range(1, num_epochs+1):
 
 
 torch.save(model.state_dict(), 'EmbedAlignModel-{}btc-{}.p'.format(batch_size, batch_size * num_batches))
-
-
-# # Write embeddings to file
-# embeddings = model.input_embeds.weight
-
-# with open(output_path, 'w') as f_out:
-#     for idx in range(embeddings.size()[0]):
-#         word = idx2word[idx]
-
-#         embed = embeddings[idx, :]
-#         embed = str(list(embed.data.numpy()))
-#         embed = embed[1:-1]
-
-#         print('{} {}'.format(word, embed), file=f_out)

@@ -34,6 +34,8 @@ print('Initial learning rate: {}'.format(lr))
 print("Load data.")
 corpus, word2idx, counter = read_corpus('data/europarl/training.en', n_sentences=batch_size * num_batches)
 data = create_BSG_data(corpus, word2idx, counter, window_size, batch_size)
+pickle.dump(word2idx, open("w2i-bsg-europarl-en-100btc-{}.p".format(batch_size * num_batches), "wb" ))
+
 V = len(word2idx)
 
 
@@ -60,4 +62,7 @@ for epoch in range(1, num_epochs + 1):
         optimizer.step()
 
     print('Loss at epoch {}: {}'.format(epoch, overall_loss))
-    # print(model.input_embeds.weight[:3])
+
+
+torch.save(model.state_dict(), 'BSGModel-{}btc-{}.p'.format(batch_size, batch_size * num_batches))
+
