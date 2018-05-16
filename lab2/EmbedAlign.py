@@ -29,14 +29,12 @@ class EmbedAlign(Module):
             self.h_dim = embed_dim
 
         self.embeddings = Embedding(vocab_size_l1, embed_dim)
-        self.embeddings.weight.requires_grad = False
 
         self.affine_l1 = Linear(embed_dim, vocab_size_l1)
         self.affine_l2 = Linear(embed_dim, vocab_size_l2)
 
         self.softmax = Softmax(dim=2)
         self.cross_entropy = CrossEntropyLoss()
-
 
         self.inference_net = InferenceNet(self.h_dim, embed_dim)
 

@@ -42,13 +42,13 @@ print('--- Load data ---')
 
 # batches_en, batches_fr = create_parallel_batches(corpus_en, corpus_fr, word2idx_en, word2idx_fr, batch_size=batch_size)
 
-with open('models/w2i-europarl-en.p', 'rb') as f_in:
+with open('w2i-europarl-en-100btc-5000.p', 'rb') as f_in:
     word2idx_en = pickle.load(f_in)
 
-with open('models/w2i-europarl-fr.p', 'rb') as f_in:
+with open('w2i-europarl-fr-100btc-5000.p', 'rb') as f_in:
     word2idx_fr = pickle.load(f_in)
 
-with open('models/embedalign-europarl-100btc.p', 'rb') as f_in:
+with open('embedalign-europarl-100btc-5000.p', 'rb') as f_in:
     batches_en, batches_fr = pickle.load(f_in)
 
 vocab_size_en = len(word2idx_en)
@@ -59,7 +59,7 @@ model = EmbedAlign(vocab_size_en,
                   embed_dim,
                   with_context)
 
-optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
+optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
 
 batches = list(zip(batches_en, batches_fr))
@@ -95,7 +95,7 @@ for epoch in range(1, num_epochs+1):
     print('Loss at epoch {}: {}'.format(epoch, overall_loss / epoch))
 
 
-torch.save(model.state_dict(), 'EmbedAlignModel-{}.p'.format(num_batches))
+torch.save(model.state_dict(), 'EmbedAlignModel-{}btc-{}.p'.format(batch_size, batch_size * num_batches))
 
 
 # # Write embeddings to file
