@@ -1,31 +1,12 @@
 import torch
+import numpy as np
+from torch.nn.init import xavier_uniform_
 from torch.nn import Embedding, Linear, Softmax, Softplus, ReLU
 from torch.nn.modules.module import Module
 from torch.autograd import Variable
 from torch.distributions import MultivariateNormal
 from torch.distributions.kl import kl_divergence
-import numpy as np
-from torch import nn
 
-
-# def multivariate_normal_kl(var0, var1, mean0, mean1):
-#         var0 = torch.diagflat(var0)
-#         var1 = torch.diagflat(var1)
-#         var1_inv = torch.inverse(var1)
-#         dims = mean0.size()[0]
-
-#         kl = 0.5 * (
-#                     torch.trace(torch.matmul(var1_inv, var0))
-#                     + torch.matmul(
-#                                    torch.matmul(mean1 - mean0, var1_inv),
-#                                    mean1 - mean0
-#                                    )
-#                     - dims
-#                     + torch.log(torch.det(var1) / torch.det(var0))
-#                     )
-
-
-#         return kl
 
 def multivariate_normal_kl(scale0, scale1, loc0, loc1):
     cov0 = torch.diagflat(scale0 ** 2)
@@ -68,9 +49,9 @@ class BayesianSG(Module):
 
     def init_embeds():
         """ All embeddings are Xavier-initialised. """
-        nn.init.xavier_uniform_(self.prior_locs.weight)
-        nn.init.xavier_uniform_(self.prior_scales.weight)
-        nn.init.xavier_uniform_(self.embeddings.weight)
+        xavier_uniform_(self.prior_locs.weight)
+        xavier_uniform_(self.prior_scales.weight)
+        xavier_uniform_(self.embeddings.weight)
 
 
     def forward(self,

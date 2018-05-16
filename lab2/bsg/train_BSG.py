@@ -1,10 +1,10 @@
 import numpy as np
 import torch
 import argparse
-from torch.autograd import Variable
 import pickle
+from torch.autograd import Variable
 from BayesianSG import BayesianSG
-from preprocess import read_corpus, create_BSG_data
+from utils.preprocess import read_corpus, create_BSG_data
 
 
 parser = argparse.ArgumentParser()
@@ -22,19 +22,22 @@ batch_size = args.batch_size
 num_epochs = args.epochs
 lr = args.lr
 num_batches = args.n_batches
+num_sentences = batch_size * num_batches
 
 print('Embedding dimensionality: {}'.format(embed_dim))
 print('Window size: {}'.format(window_size))
 print('Batch size: {}'.format(batch_size))
-print('Number of sentences: {}'.format(batch_size * num_batches))
+print('Number of sentences: {}'.format(num_sentences))
 print('Number of epochs: {}'.format(num_epochs))
 print('Initial learning rate: {}'.format(lr))
 
 
 print("Load data.")
-corpus, word2idx, counter = read_corpus('data/europarl/training.en', n_sentences=batch_size * num_batches)
+corpus, word2idx, counter = read_corpus('data/europarl/training.en', n_sentences=num_sentences)
 data = create_BSG_data(corpus, word2idx, counter, window_size, batch_size)
-pickle.dump(word2idx, open("w2i-bsg-europarl-en-100btc-{}.p".format(batch_size * num_batches), "wb" ))
+pickle.dump(word2idx, open("w2i-bsg-europarl-en-{}w-{}btc-{}.p".format(window_size,
+                                                                       batch_size,
+                                                                       num_sentences), "wb" ))
 
 V = len(word2idx)
 
@@ -64,5 +67,8 @@ for epoch in range(1, num_epochs + 1):
     print('Loss at epoch {}: {}'.format(epoch, overall_loss))
 
 
-torch.save(model.state_dict(), 'BSGModel-{}btc-{}.p'.format(batch_size, batch_size * num_batches))
+torch.save(model.state_dict(), 'BSGModel-{}btc-{}lr-{}ep-{}.p'.format(batch_size,
+                                                                       lr[2:],
+                                                                       num_epochs,
+                                                                       num_sentences))
 

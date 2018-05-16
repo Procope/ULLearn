@@ -4,13 +4,12 @@ import argparse
 from torch.autograd import Variable
 import pickle
 from Skipgram import Skipgram
-from preprocess import read_corpus, create_skipgrams
-
+from utils.preprocess import read_corpus, create_skipgrams
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dims', type=int, default=100, help='Word vector dimensionality')
 parser.add_argument('--window', type=int, default=5, help='One-sided window size')
-parser.add_argument('--batch', type=int, default=100, help='Number of batches')
+parser.add_argument('--batch_size', type=int, default=100, help='The batch size')
 parser.add_argument('--epochs', type=int, default=50, help='Number of epochs to train.')
 parser.add_argument('--lr', type=float, default=0.0001, help='Initial learning rate.')
 parser.add_argument('--n_batches', type=int, default=50, help='Number of batches.')
@@ -18,24 +17,25 @@ parser.add_argument('--n_batches', type=int, default=50, help='Number of batches
 args = parser.parse_args()
 embed_dim = args.dims
 window_size = args.window
-batch_size = args.batch
+batch_size = args.batch_size
 num_epochs = args.epochs
 lr = args.lr
 num_batches = args.n_batches
+num_sentences = num_batches * batch_size
 
 print('Embedding dimensionality: {}'.format(embed_dim))
 print('Window size: {}'.format(window_size))
 print('Batch size: {}'.format(batch_size))
-print('Number of sentences: {}'.format(batch_size * num_batches))
+print('Number of sentences: {}'.format(num_sentences))
 print('Number of epochs: {}'.format(num_epochs))
 print('Initial learning rate: {}'.format(lr))
 
 
 
-with open('w2i-skipgram-europarl-en-5w-100btc-5000.p', 'rb') as f_in:
+with open('models/w2i-skipgram-europarl-en-5w-100btc-5000.p', 'rb') as f_in:
     word2idx = pickle.load(f_in)
 
-with open('skipgram-europarl-en-5w-100btc-5000.p', 'rb') as f_in:
+with open('models/skipgram-europarl-en-5w-100btc-5000.p', 'rb') as f_in:
     data = pickle.load(f_in)
 
 #V = len(word2idx)
@@ -77,7 +77,11 @@ for epoch in range(1, num_epochs + 1):
 # Write embeddings to file
 embeddings = model.input_embeds.weight
 idx2word = {i: w for (w,i) in word2idx.items()}
-with open('skipgram-europarl-en-{}w-{}btc-sent{}-lr{}.txt'.format(window_size, batch_size, num_batches * batch_size, lr), 'w') as f_out:
+with open('SkipgramModel-{}btc-{}lr-{}ep-{}.txt'.format(batch_size,
+                                                        lr[2:],
+                                                        num_epochs,
+                                                        num_sentences), 'w') as f_out:
+
     for idx in range(embeddings.size()[0]):
         word = idx2word[idx]
 

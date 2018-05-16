@@ -2,11 +2,11 @@ import numpy as np
 import torch
 import argparse
 import pickle
-from random import shuffle
+import random
 from torch.autograd import Variable
 
 from EmbedAlign import EmbedAlign
-from preprocess import read_corpus, create_parallel_batches
+from utils.preprocess import read_corpus, create_parallel_batches
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dims', type=int, default=100, help='Word vector dimensionality')
@@ -25,6 +25,7 @@ num_epochs = args.epochs
 lr = args.lr
 num_batches = args.n_batches
 with_context = args.context
+num_sentences = batch_size * num_batches
 
 # output_path = args.save
 print('Embedding dimensionality: {}'.format(embed_dim))
@@ -36,20 +37,27 @@ print('{} epochs. Initial learning rate: {}'.format(num_epochs, lr))
 
 print('--- Load data ---')
 
-# corpus_en, word2idx_en, _ = read_corpus('data/europarl/training.en', n_sentences=args.test)
-# corpus_fr, word2idx_fr, _ = read_corpus('data/europarl/training.fr', n_sentences=args.test)
+corpus_en, word2idx_en, _ = read_corpus('data/europarl/training.en', n_sentences=num_sentences)
+corpus_fr, word2idx_fr, _ = read_corpus('data/europarl/training.fr', n_sentences=num_sentences)
 
-# batches_en, batches_fr = create_parallel_batches(corpus_en, corpus_fr, word2idx_en, word2idx_fr, batch_size=batch_size)
+batches = create_parallel_batches(corpus_en,
+                                  corpus_fr,
+                                  word2idx_en,
+                                  word2idx_fr,
+                                  batch_size)
 
+pickle.dump(batches, open("embedalign-europarl-{}btc-{}.p".format(batch_size, num_sentences), "wb" ))
+pickle.dump(word2idx_en, open("w2i-europarl-en-{}btc-{}.p".format(batch_size, num_sentences), "wb" ))
+pickle.dump(word2idx_fr, open("w2i-europarl-fr-{}btc-{}.p".format(batch_size, num_sentences), "wb" ))
 
-with open('w2i-europarl-en-100btc-5000.p', 'rb') as f_in:
-    word2idx_en = pickle.load(f_in)
+# with open('models/w2i-europarl-en-100btc-5000.p', 'rb') as f_in:
+#     word2idx_en = pickle.load(f_in)
 
-with open('w2i-europarl-fr-100btc-5000.p', 'rb') as f_in:
-    word2idx_fr = pickle.load(f_in)
+# with open('models/w2i-europarl-fr-100btc-5000.p', 'rb') as f_in:
+#     word2idx_fr = pickle.load(f_in)
 
-with open('embedalign-europarl-100btc-5000.p', 'rb') as f_in:
-    batches_en, batches_fr = pickle.load(f_in)
+# with open('models/embedalign-europarl-100btc-5000.p', 'rb') as f_in:
+#     batches_en, batches_fr = pickle.load(f_in)
 
 vocab_size_en = len(word2idx_en)
 vocab_size_fr = len(word2idx_fr)
@@ -58,10 +66,8 @@ model = EmbedAlign(vocab_size_en, vocab_size_fr, embed_dim, with_context)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-
-batches = list(zip(batches_en, batches_fr))
-shuffle(batches)
-
+batches = list(zip(batches[0], batches[1]))
+random.shuffle(batches)
 if num_batches:
     batches = batches[:num_batches]
 
@@ -90,7 +96,9 @@ for epoch in range(1, num_epochs+1):
         loss.backward()
         optimizer.step()
 
-    # if epoch % 5 == 0:
     print('Loss at epoch {}: {}'.format(epoch, overall_loss / epoch))
 
-torch.save(model.state_dict(), 'EmbedAlignModel-{}btc-{}.p'.format(batch_size, batch_size * num_batches))
+torch.save(model.state_dict(), 'EmbedAlignModel-{}btc-{}lr-{}ep-{}.p'.format(batch_size,
+                                                                             lr[2:],
+                                                                             num_epochs,
+                                                                             num_sentences))
