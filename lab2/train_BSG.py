@@ -10,7 +10,7 @@ from preprocess import read_corpus, create_BSG_data
 parser = argparse.ArgumentParser()
 parser.add_argument('--dims', type=int, default=100, help='Word vector dimensionality')
 parser.add_argument('--window', type=int, default=5, help='One-sided window size')
-parser.add_argument('--batch', type=int, default=100, help='Number of batches')
+parser.add_argument('--batch_size', type=int, default=100, help='Batch_size')
 parser.add_argument('--epochs', type=int, default=50, help='Number of epochs to train.')
 parser.add_argument('--lr', type=float, default=0.001, help='Initial learning rate.')
 parser.add_argument('--n_batches', type=int, default=50, help='Number of batches.')
@@ -18,7 +18,7 @@ parser.add_argument('--n_batches', type=int, default=50, help='Number of batches
 args = parser.parse_args()
 embed_dim = args.dims
 window_size = args.window
-batch_size = args.batch
+batch_size = args.batch_size
 num_epochs = args.epochs
 lr = args.lr
 num_batches = args.n_batches
