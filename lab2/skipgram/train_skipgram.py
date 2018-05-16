@@ -78,7 +78,7 @@ for epoch in range(1, num_epochs + 1):
 embeddings = model.input_embeds.weight
 idx2word = {i: w for (w,i) in word2idx.items()}
 with open('SkipgramModel-{}btc-{}lr-{}ep-{}.txt'.format(batch_size,
-                                                        lr[2:],
+                                                        str(lr)[2:],
                                                         num_epochs,
                                                         num_sentences), 'w') as f_out:
 

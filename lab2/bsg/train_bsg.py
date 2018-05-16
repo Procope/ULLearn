@@ -68,7 +68,7 @@ for epoch in range(1, num_epochs + 1):
 
 
 torch.save(model.state_dict(), 'BSGModel-{}btc-{}lr-{}ep-{}.p'.format(batch_size,
-                                                                       lr[2:],
+                                                                       str(lr)[2:],
                                                                        num_epochs,
                                                                        num_sentences))
 
