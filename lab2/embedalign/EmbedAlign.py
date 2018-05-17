@@ -101,9 +101,7 @@ class EmbedAlign(Module):
         kl_z = torch.sum(kl_z * l1_mask, dim=1)  # [b]
         kl_z = torch.mean(kl_z, dim=0)  # []
 
-        elbo = cross_entropy_l1 + cross_entropy_l2 + kl_z
-
-        loss = -elbo
+        loss = cross_entropy_l1 + cross_entropy_l2 + kl_z
 
         # Alignment Error Rate for L1
         predicted_batch_l1 = torch.argmax(cat_l1)
