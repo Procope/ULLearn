@@ -4,7 +4,7 @@ from torch.distributions import MultivariateNormal
 from torch.distributions.kl import kl_divergence
 
 
-def skipgram_scores(embeds, context, mode='cosine'):
+def skipgram_scores(embeds, context, mode):
     '''
     Scoring functions from:
     Melamud, Oren, Omer Levy, and Ido Dagan.
@@ -15,14 +15,13 @@ def skipgram_scores(embeds, context, mode='cosine'):
     c = context
     c_len = len(context)
 
-
     if mode == 'cosine':
         scores = alternatives @ t
         scores = scores.tolist()
 
     elif mode == 'add':
-            scores = [
-                (a @ t + np.sum(c @ a)) / (c_len + 1)
+        scores = [
+            (a @ t + np.sum(c @ a)) / (c_len + 1)
             for a
             in alternatives
     ]
@@ -57,13 +56,14 @@ def skipgram_scores(embeds, context, mode='cosine'):
 
 
 def multivariate_normal_kl(scale0, scale1, loc0, loc1):
-    cov0 = torch.diagflat(torch.tensor(scale0 ** 2))
-    cov1 = torch.diagflat(torch.tensor(scale1 ** 2))
+    cov0 = np.diagflat(scale0 ** 2)
+    cov1 = np.diagflat(scale1 ** 2)
 
-    d0 = MultivariateNormal(torch.tensor(loc0), covariance_matrix=cov0)
-    d1 = MultivariateNormal(torch.tensor(loc1), covariance_matrix=cov1)
+    kl = 0.5 * (np.trace(np.matmul(np.linalg.inv(cov1), cov0)) \
+             + np.matmul(np.matmul(np.transpose(loc1 - loc0), np.linalg.inv(cov1)), (loc1 - loc0)) - cov0.shape[0] \
+             + np.log(np.linalg.det(cov1)) - np.log(np.linalg.det(cov0)))
 
-    return kl_divergence(d0, d1)
+    return kl
 
 
 def kl_scores(embeds_locs, embeds_scales):
