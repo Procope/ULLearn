@@ -9,6 +9,7 @@ class Skipgram(Module):
 
     def __init__(self, vocab_size, embed_dim):
         super(Skipgram, self).__init__()
+
         self.vocab_size = vocab_size
         self.embed_dim = embed_dim
 

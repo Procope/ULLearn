@@ -1,10 +1,13 @@
 import torch
-from torch.nn.functional import logsigmoid
-from torch.nn import Embedding, Linear, Softplus
+from torch.nn import Linear, Softplus
 from torch.nn.modules.module import Module
-from torch.autograd import Variable
+
 
 class InferenceNet(Module):
+    """
+    Inference model: takes deterministic embeddings as an input
+    and returns corresponding location and scale vectors.
+    """
 
     def __init__(self, in_features, out_features):
         super(InferenceNet, self).__init__()
