@@ -1,10 +1,11 @@
 import numpy as np
 import torch
 import argparse
-from torch.autograd import Variable
 import pickle
+
 from Skipgram import Skipgram
 from utils.preprocess import read_corpus, create_skipgrams
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dims', type=int, default=100, help='Word vector dimensionality')
@@ -31,18 +32,12 @@ print('Number of epochs: {}'.format(num_epochs))
 print('Initial learning rate: {}'.format(lr))
 
 
-
-with open('models/w2i-skipgram-europarl-en-5w-100btc-5000.p', 'rb') as f_in:
-    word2idx = pickle.load(f_in)
-
-with open('models/skipgram-europarl-en-5w-100btc-5000.p', 'rb') as f_in:
-    data = pickle.load(f_in)
-
-#V = len(word2idx)
-
 print("Load data.")
-# corpus, word2idx, counter = read_corpus('data/europarl/training.en', n_sentences=batch_size*num_batches)
-# data = create_skipgrams(corpus, word2idx, counter, window_size, batch_size)
+corpus, word2idx, counter = read_corpus('data/europarl/training.en', n_sentences=num_sentences)
+data = create_skipgrams(corpus, word2idx, counter, window_size, batch_size)
+pickle.dump(word2idx, open("w2i-bsg-europarl-en-{}w-{}btc-{}.p".format(window_size,
+                                                                       batch_size,
+                                                                       num_sentences), "wb" ))
 V = len(word2idx)
 
 
@@ -69,9 +64,7 @@ for epoch in range(1, num_epochs + 1):
         loss.backward()
         optimizer.step()
 
-    # if epoch % 10 == 0:
     print('Loss at epoch {}: {}'.format(epoch, overall_loss))
-    # print(model.input_embeds.weight[:3])
 
 
 # Write embeddings to file

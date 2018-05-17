@@ -4,6 +4,7 @@ from torch.nn import Embedding
 from torch.nn.modules.module import Module
 from torch.autograd import Variable
 
+
 class Skipgram(Module):
 
     def __init__(self, vocab_size, embed_dim):
@@ -22,33 +23,28 @@ class Skipgram(Module):
         self.output_embeds.weight.data.uniform_(-0, 0)
 
 
-    def forward(self,
-                center_id,
-                pos_context_id,
-                neg_context_ids):
+    def forward(self, center_id, pos_context_id, neg_context_ids):
         """
         Args: center_id: list of center word ids for positive word pairs.
               pos_context_id: list of neighbor word ids for positive word pairs.
               neg_context_ids: list of neighbor word ids for negative word pairs.
         """
 
-        losses = []
-
+        # Obtain embeddings for all word ids
         center_embed = self.input_embeds(Variable(torch.LongTensor(center_id)))
         pos_context_embed = self.output_embeds(Variable(torch.LongTensor(pos_context_id)))
-
-
-        score = (center_embed * pos_context_embed).squeeze()  # elementwise multiplication: batch_size x embed_dim
-        score = torch.sum(score, dim=1)
-
-        score = logsigmoid(score)
-        losses.append(sum(score))
-
         neg_context_embeds = self.output_embeds(Variable(torch.LongTensor(neg_context_ids)))
+
+
+        # Compute loss
+        pos_score = (center_embed * pos_context_embed).squeeze()
+        pos_score = torch.sum(pos_score, dim=1)
+        pos_loss = logsigmoid(pos_score)
+
         neg_score = torch.bmm(neg_context_embeds, center_embed.unsqueeze(2)).squeeze()
         neg_score = torch.sum(neg_score, dim=1)
+        neg_loss = logsigmoid(-1 * neg_score)
 
-        neg_score = logsigmoid(-1 * neg_score)
-        losses.append(sum(neg_score))
+        loss = torch.sum(pos_loss) + torch.sum(neg_loss)
 
-        return -1 * sum(losses)
+        return -loss
