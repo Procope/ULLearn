@@ -1,6 +1,6 @@
 ## Learning Word Representations
 
-In this lab, we implement and train three word representation models: one, **Skip-gram**, trained for maximum likelihood, and two latent variable models trained by variational inference: **Bayesian Skip-gram** and **EmbedAlign**.  Skip-gram is trained discriminatively by having a central word predict context words in a window surrounding it. Bayesian Skip-gram introduces stochastic latent embeddings but does not change the discriminative nature of the training procedure. EmbedAlign introduces stochastic latent embeddings as well as a latent alignment variable and learns by generating translation data. We compare the performance of these three models on the lexical substitution task.
+In this lab, we implement and train three word representation models: one, [Skip-gram](https://arxiv.org/abs/1301.3781), trained for maximum likelihood, and two latent variable models trained by variational inference: [Bayesian Skip-gram](https://arxiv.org/abs/1711.11027) and [EmbedAlign](https://arxiv.org/abs/1802.05883).  Skip-gram is trained discriminatively by having a central word predict context words in a window surrounding it. Bayesian Skip-gram introduces stochastic latent embeddings but does not change the discriminative nature of the training procedure. EmbedAlign introduces stochastic latent embeddings as well as a latent alignment variable and learns by generating translation data. We compare the performance of these three models on the lexical substitution task.
 
 ---------------
 
