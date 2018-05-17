@@ -46,15 +46,15 @@ class BayesianSG(Module):
         self.softplus = Softplus()
         self.relu = ReLU()
 
+
     def init_embeds():
         """ All embeddings are Xavier-initialised. """
         xavier_uniform_(self.prior_locs.weight)
         xavier_uniform_(self.prior_scales.weight)
         xavier_uniform_(self.embeddings.weight)
 
-    def forward(self,
-                center_id,
-                context_ids):
+
+    def forward(self, center_id, context_ids):
         """
         Args: center_id: list of center word ids for positive word pairs.
               context_ids: list of neighbor word ids for positive word pairs.
