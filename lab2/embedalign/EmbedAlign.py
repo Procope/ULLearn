@@ -6,6 +6,7 @@ from torch.autograd import Variable
 from torch.distributions import MultivariateNormal
 from inference import InferenceNet
 
+
 class EmbedAlign(Module):
 
     def __init__(self,
@@ -37,7 +38,6 @@ class EmbedAlign(Module):
         self.cross_entropy = CrossEntropyLoss()
 
         self.inference_net = InferenceNet(self.h_dim, embed_dim)
-
 
     def forward(self,
                 batch_l1,
@@ -85,11 +85,11 @@ class EmbedAlign(Module):
 
         p_l2_zx = torch.bmm(align_probs, cat_l2)  # [b,n,V_l2]
 
-        cross_entropy_l1 = self.cross_entropy(logits_l1.permute([0,2,1]), batch_l1)  # [b,m]
+        cross_entropy_l1 = self.cross_entropy(logits_l1.permute([0, 2, 1]), batch_l1)  # [b,m]
         cross_entropy_l1 = torch.sum(cross_entropy_l1 * l1_mask, dim=1)  # [b]
         cross_entropy_l1 = torch.mean(cross_entropy_l1, dim=0)  # []
 
-        cross_entropy_l2 = self.cross_entropy(p_l2_zx.permute([0,2,1]), batch_l2)
+        cross_entropy_l2 = self.cross_entropy(p_l2_zx.permute([0, 2, 1]), batch_l2)
         cross_entropy_l2 = torch.sum(cross_entropy_l2 * l2_mask, dim=1)  # [b]
         cross_entropy_l2 = torch.mean(cross_entropy_l2, dim=0)  # []
 
@@ -101,7 +101,9 @@ class EmbedAlign(Module):
         kl_z = torch.sum(kl_z * l1_mask, dim=1)  # [b]
         kl_z = torch.mean(kl_z, dim=0)  # []
 
-        loss = cross_entropy_l1 + cross_entropy_l2 + kl_z
+        elbo = cross_entropy_l1 + cross_entropy_l2 + kl_z
+
+        loss = -elbo
 
         # Alignment Error Rate for L1
         predicted_batch_l1 = torch.argmax(cat_l1)
