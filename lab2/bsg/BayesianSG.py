@@ -46,13 +46,11 @@ class BayesianSG(Module):
         self.softplus = Softplus()
         self.relu = ReLU()
 
-
     def init_embeds():
         """ All embeddings are Xavier-initialised. """
         xavier_uniform_(self.prior_locs.weight)
         xavier_uniform_(self.prior_scales.weight)
         xavier_uniform_(self.embeddings.weight)
-
 
     def forward(self,
                 center_id,
@@ -69,10 +67,6 @@ class BayesianSG(Module):
         center_embed = center_embed.repeat(1, context_ids.size()[1], 1)  # [b,c,d]
         encoder_input = torch.cat((center_embed, context_embeds), dim=2)  # [b,c,2d]
 
-        # dimensions_context = list(context_ids.size())
-        # center_embed = center_embed.repeat(1, dimensions_context[1], 1)  # [b,c,d]
-
-
         # Encode context-aware representations
         h = self.relu(self.encoder(encoder_input))  # [b,c,2d]
         h = torch.sum(h, dim=1)  # [b,2d]
@@ -80,7 +74,6 @@ class BayesianSG(Module):
         # Inference step
         loc = self.affine_loc(h)
         scale = self.softplus(self.affine_scale(h))
-
 
         # Reparametrization
         epsilon = self.std_normal.sample()
@@ -94,19 +87,20 @@ class BayesianSG(Module):
         prior_loc = self.prior_locs(Variable(center_id))
         prior_scale = self.softplus(self.prior_scales(Variable(center_id)))
 
-
-
         # Compute ELBO
+
+        # KL term
         kl = []
         for i, _ in enumerate(center_id):
             kl.append(multivariate_normal_kl(scale[i],
                                              prior_scale[i],
                                              loc[i],
-                                             prior_loc[i])
-            )
+                                             prior_loc[i]))
+
         kl = torch.stack(kl)
 
         lls = []
+        # Likelihood term
         for cent_id, cont_ids in enumerate(context_ids):
             ll = 0
             for k in cont_ids:
@@ -117,9 +111,8 @@ class BayesianSG(Module):
             lls.append(ll)
 
         elbo = torch.tensor(lls) - kl
+
+        # Loss
         loss = torch.mean(- elbo)
 
         return loss
-
-
-
