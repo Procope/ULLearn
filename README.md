@@ -4,3 +4,5 @@ This class covers representation learning methods for natural language processin
 
 
 - **Lab 1: Evaluating word representations** The goal is to get familiar with word representation models and different techniques for evaluating them. The word representation model that we work with is Skip-gram, trained using two kinds of context: dependency-based and window-based.
+
+- **Lab 2: Learning word representations** The goal is to implement and compare three word representation models: Skip-gram, Bayesian Skip-gram, and EmbedAlign. They are evaluated on a lexical substitution task as well as an alignment task (EmbedAlign only).
