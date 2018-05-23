@@ -10,7 +10,7 @@ FREQUENCY_THRESHOLD = 1
 EMBED_DIMS = 100
 WINDOW_SIZE = 5
 NEGATIVE_SAMPLING = 5
-NUM_EPOCHS = 50
+NUM_EPOCHS = [10, 20, 30, 40, 50]
 STOP_WORDS = False
 
 
@@ -40,20 +40,21 @@ else:
 print("Done in {} seconds".format(time.time() - start))
 
 
-model = gensim.models.Word2Vec(tokenized_corpus,
-                               sg=1, # Skip-gram
-                               size=EMBED_DIMS,
-                               window=WINDOW_SIZE,
-                               negative=NEGATIVE_SAMPLING,
-                               min_count=FREQUENCY_THRESHOLD,
-                               max_vocab_size=None,
-                               workers=4,
-                               iter=1)
+for num_epochs in NUM_EPOCHS:
+    model = gensim.models.Word2Vec(tokenized_corpus,
+                                   sg=1, # Skip-gram
+                                   size=EMBED_DIMS,
+                                   window=WINDOW_SIZE,
+                                   negative=NEGATIVE_SAMPLING,
+                                   min_count=FREQUENCY_THRESHOLD,
+                                   max_vocab_size=None,
+                                   workers=4,
+                                   iter=1)
 
-model.train(tokenized_corpus, total_examples=len(tokenized_corpus), epochs=NUM_EPOCHS)
+    model.train(tokenized_corpus, total_examples=len(tokenized_corpus), epochs=num_epochs-1)
 
-model.save('skipgram-{}-w{}-fr{}-ns{}-ep{}.embs'.format(EMBED_DIMS,
-                                                        WINDOW_SIZE,
-                                                        FREQUENCY_THRESHOLD,
-                                                        NEGATIVE_SAMPLING,
-                                                        NUM_EPOCHS))
+    model.save('models/skipgram/skipgram-{}-w{}-fr{}-ns{}-ep{}.embs'.format(EMBED_DIMS,
+                                                            WINDOW_SIZE,
+                                                            FREQUENCY_THRESHOLD,
+                                                            NEGATIVE_SAMPLING,
+                                                            num_epochs))
