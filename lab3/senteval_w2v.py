@@ -21,8 +21,8 @@ import dgm4nlp
 
 # Paths
 PATH_TO_DATA = 'SentEval/data'
-PATH_TO_MODEL_DIR = 'models/fasttext/'
-PATH_TO_MODEL = 'fasttext-100-w5-fr1-ns5-ep30.embs'
+PATH_TO_MODEL_DIR = 'models/skipgram/'
+PATH_TO_MODEL = 'skipgram-100-w5-fr1-ns5-ep30.embs'
 
 
 class dotdict(dict):
@@ -52,8 +52,7 @@ class dotdict(dict):
 params_senteval = {'task_path': '',
                    'usepytorch': False,
                    'kfold': 10,
-                   'model': None,
-                   'avg_emb': None}
+                   'model': None}
 # made dictionary a dotdict
 params_senteval = dotdict(params_senteval)
 # this is the config for the NN classifier but we are going to use scikit-learn logistic regression with 10 kfold
@@ -126,14 +125,13 @@ if __name__ == "__main__":
     # in (https://arxiv.org/abs/1802.05883) we use the following :
     # SICKRelatedness (Sick-R) needs torch cuda to work (even when using logistic regression),
     # but STS14 (semantic textual similarity) is a similar type of semantic task
-    transfer_tasks = ['CR', 'MR', 'MPQA', 'SUBJ', 'SST2',
+    transfer_tasks = ['CR', 'MR', 'MPQA', 'SUBJ', 'SST2', 'STS16',
                       'SST5', 'TREC', 'MRPC', 'SICKEntailment',
                       'Depth', 'BigramShift', 'Tense', 'SubjNumber']
-                       # ideally also STS
 
     # senteval prints the results and returns a dictionary with the scores
     results = se.eval(transfer_tasks)
     print(results)
 
-    with open('output/fasttext_results.txt', 'w') as f_out:
+    with open('output/skipgram30_results.txt', 'w') as f_out:
         print(results, file=f_out)
