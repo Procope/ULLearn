@@ -24,6 +24,9 @@ PATH_TO_DATA = 'SentEval/data'
 PATH_TO_MODEL_DIR = 'models/skipgram/'
 PATH_TO_MODEL = 'skipgram-100-w5-fr1-ns5-ep30.embs'
 
+# param: whether to remove stop words from sentence
+STOP_WORDS = True
+
 
 class dotdict(dict):
     """ dot.notation access to dictionary attributes """
@@ -52,13 +55,16 @@ class dotdict(dict):
 params_senteval = {'task_path': '',
                    'usepytorch': False,
                    'kfold': 10,
-                   'model': None}
+                   'model': None,
+                   'stop_words': STOP_WORDS}
+
 # made dictionary a dotdict
 params_senteval = dotdict(params_senteval)
 # this is the config for the NN classifier but we are going to use scikit-learn logistic regression with 10 kfold
 # usepytorch = False
 #params_senteval['classifier'] = {'nhid': 0, 'optim': 'rmsprop', 'batch_size': 128,
 #                                 'tenacity': 3, 'epoch_size': 2}
+
 
 
 def prepare(params, samples):
@@ -89,8 +95,20 @@ def batcher(params, batch):
     batch = [sent if sent != [] else ['.'] for sent in batch]
     embeddings = []
 
+    if params.stop_words:
+        with open('stop_words_en.txt', 'r') as f_in:
+            stop_words = [line.strip() for line in f_in.readlines()]
+
     for sent in batch:
-        word_embeds = [params.model.wv[word] for word in sent if word in params.model]
+        if params.stop_words:
+            word_embeds = [params.model.wv[word]
+                            for word in sent
+                            if (word in params.model
+                            and word not in stop_words)]
+        else:
+            word_embeds = [params.model.wv[word]
+                            for word in sent
+                            if word in params.model]
 
         if len(word_embeds) == 0:
             word_embeds = [params.model.wv['.']]
@@ -125,13 +143,15 @@ if __name__ == "__main__":
     # in (https://arxiv.org/abs/1802.05883) we use the following :
     # SICKRelatedness (Sick-R) needs torch cuda to work (even when using logistic regression),
     # but STS14 (semantic textual similarity) is a similar type of semantic task
-    transfer_tasks = ['CR', 'MR', 'MPQA', 'SUBJ', 'SST2', 'STS16',
-                      'SST5', 'TREC', 'MRPC', 'SICKEntailment',
-                      'Depth', 'BigramShift', 'Tense', 'SubjNumber']
+    # transfer_tasks = ['CR', 'MR', 'MPQA', 'SUBJ', 'SST2', 'STS16',
+    #                   'SST5', 'TREC', 'MRPC', 'SICKEntailment',
+    #                   'Depth', 'BigramShift', 'Tense', 'SubjNumber']
+
+    transfer_tasks = ['TopConstituents', 'ObjNumber', 'OddManOut', 'CoordinationInversion', 'Length']
 
     # senteval prints the results and returns a dictionary with the scores
     results = se.eval(transfer_tasks)
     print(results)
 
-    with open('output/skipgram30_results.txt', 'w') as f_out:
+    with open('output/skipgram30_probing_results.txt', 'w') as f_out:
         print(results, file=f_out)
