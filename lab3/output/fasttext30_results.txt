@@ -1,0 +1,48 @@
+{'STS16': {
+    'headlines': {'nsamples': 249,
+        'spearman': SpearmanrResult(correlation=0.6529439766958971, pvalue=1.208337626739217e-31),
+        'pearson': (0.6447780516155388, 1.1730055831884909e-30)},
+    'answer-answer': {'nsamples': 254,
+        'spearman': SpearmanrResult(correlation=0.4582433954331729, pvalue=1.365884345541975e-14),
+        'pearson': (0.3755720503472076, 6.250796817467859e-10)},
+    'question-question': {'nsamples': 209,
+        'spearman': SpearmanrResult(correlation=0.49515185461487726, pvalue=2.5094613231760663e-14),
+        'pearson': (0.44794026654908486, 1.0412151888365568e-11)},
+    'plagiarism': {'nsamples': 230,
+        'spearman': SpearmanrResult(correlation=0.6812459578857553, pvalue=1.0068187690839114e-32),
+        'pearson': (0.6561015730937527, 1.0765094753065866e-29)},
+    'postediting': {'nsamples': 244,
+        'spearman': SpearmanrResult(correlation=0.7852966832917767, pvalue=2.647877497895934e-52),
+        'pearson': (0.6620598408722185, 3.7522892683145215e-32)},
+    'all': {
+        'spearman': {'wmean': 0.6161573113732975, 'mean': 0.6145763735842958},
+        'pearson': {'wmean': 0.5581876174819588, 'mean': 0.5572903564955605}}},
+
+'MRPC': {'ndev': 4076, 'f1': 79.6, 'acc': 70.2, 'devacc': 71.44, 'ntest': 1725},
+
+'MR': {'ndev': 10662, 'acc': 69.8, 'devacc': 70.07, 'ntest': 10662},
+
+'SST2': {'ndev': 872, 'acc': 72.1, 'devacc': 71.56, 'ntest': 1821},
+
+'TREC': {'ndev': 5452, 'acc': 74.6, 'devacc': 67.88, 'ntest': 500},
+
+'SST5': {'ndev': 1101, 'acc': 37.47, 'devacc': 38.42, 'ntest': 2210},
+
+'SICKEntailment': {'ndev': 500, 'acc': 74.87, 'devacc': 74.4, 'ntest': 4927},
+
+'SUBJ': {'ndev': 10000, 'acc': 86.39, 'devacc': 86.47, 'ntest': 10000},
+
+'MPQA': {'ndev': 10606, 'acc': 86.86, 'devacc': 86.9, 'ntest': 10606},
+
+'CR': {'ndev': 3775, 'acc': 74.86, 'devacc': 75.0, 'ntest': 3775}}
+
+
+'SubjNumber': {'ndev': 10000, 'acc': 75.48, 'devacc': 76.55, 'ntest': 10000},
+
+'Tense': {'ndev': 10000, 'acc': 82.05, 'devacc': 83.79, 'ntest': 10000},
+
+'Depth': {'ndev': 10000, 'acc': 27.92, 'devacc': 27.52, 'ntest': 10000},
+
+'BigramShift': {'ndev': 10000, 'acc': 49.78, 'devacc': 49.65, 'ntest': 10000},
+
+

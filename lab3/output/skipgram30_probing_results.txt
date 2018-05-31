@@ -1,0 +1,9 @@
+{'CoordinationInversion': {'ntest': 10002, 'acc': 50.43, 'ndev': 10002, 'devacc': 50.49},
+
+'TopConstituents': {'ntest': 10000, 'acc': 21.15, 'ndev': 10000, 'devacc': 20.6},
+
+'Length': {'ntest': 9996, 'acc': 23.05, 'ndev': 9996, 'devacc': 23.72},
+
+'OddManOut': {'ntest': 10000, 'acc': 49.78, 'ndev': 10000, 'devacc': 49.3},
+
+'ObjNumber': {'ntest': 10000, 'acc': 74.5, 'ndev': 10000, 'devacc': 73.04}}

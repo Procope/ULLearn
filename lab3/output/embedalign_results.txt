@@ -1,1 +1,36 @@
-{'MR': {'ntest': 74, 'devacc': 58.5, 'acc': 56.94, 'ndev': 74}, 'TREC': {'ntest': 500, 'devacc': 53.36, 'acc': 56.8, 'ndev': 5452}, 'MPQA': {'ntest': 10606, 'devacc': 83.89, 'acc': 83.78, 'ndev': 10606}, 'SST5': {'ntest': 2210, 'devacc': 33.42, 'acc': 34.25, 'ndev': 1101}, 'SST2': {'ntest': 1821, 'devacc': 67.2, 'acc': 67.05, 'ndev': 872}, 'SICKEntailment': {'ntest': 4927, 'devacc': 72.6, 'acc': 74.75, 'ndev': 500}, 'BigramShift': {'ntest': 10000, 'devacc': 50.85, 'acc': 51.13, 'ndev': 10000}, 'SUBJ': {'ntest': 5020, 'devacc': 99.6, 'acc': 99.6, 'ndev': 5020}, 'SubjNumber': {'ntest': 10000, 'devacc': 72.27, 'acc': 70.78, 'ndev': 10000}, 'CR': {'ntest': 3775, 'devacc': 70.63, 'acc': 70.65, 'ndev': 3775}, 'MRPC': {'ntest': 1725, 'f1': 80.1, 'devacc': 70.64, 'acc': 70.96, 'ndev': 4076}, 'Depth': {'ntest': 10000, 'devacc': 24.97, 'acc': 23.77, 'ndev': 10000}, 'Tense': {'ntest': 10000, 'devacc': 70.87, 'acc': 67.49, 'ndev': 10000}}
+{'MR': {'acc': 64.72, 'ntest': 10662, 'devacc': 64.53, 'ndev': 10662},
+
+'TREC': {'acc': 57.4, 'ntest': 500, 'devacc': 53.56, 'ndev': 5452},
+
+'SST2': {'acc': 67.11, 'ntest': 1821, 'devacc': 67.2, 'ndev': 872},
+
+'CR': {'acc': 70.65, 'ntest': 3775, 'devacc': 70.63, 'ndev': 3775},
+
+'MPQA': {'acc': 83.78, 'ntest': 10606, 'devacc': 83.89, 'ndev': 10606},
+
+'MRPC': {'f1': 80.1, 'acc': 70.96, 'ntest': 1725, 'devacc': 70.64, 'ndev': 4076},
+
+'SICKEntailment': {'acc': 74.75, 'ntest': 4927, 'devacc': 72.6, 'ndev': 500}
+
+'SUBJ': {'acc': 79.15, 'ntest': 10000, 'devacc': 79.17, 'ndev': 10000},
+
+'SST5': {'acc': 34.25, 'ntest': 2210, 'devacc': 33.42, 'ndev': 1101}}
+
+'STS16': {
+    'all':
+        {'pearson': {'mean': 0.5225063795674953, 'wmean': 0.5263480361282317},
+        'spearman': {'mean': 0.5701699918449318, 'wmean': 0.5748003201842138}},
+        'postediting': {'nsamples': 244, 'pearson': (0.6884207496498984, 1.3083684151566462e-35), 'spearman': SpearmanrResult(correlation=0.757470573640614, pvalue=1.0395807528804248e-46)},
+        'question-question': {'nsamples': 209, 'pearson': (0.3224139526369483, 1.9274952395244904e-06), 'spearman': SpearmanrResult(correlation=0.346174705405786, pvalue=2.8333572706064306e-07)},
+        'answer-answer': {'nsamples': 254, 'pearson': (0.3772974266768997, 5.143122539701308e-10), 'spearman': SpearmanrResult(correlation=0.4443751510914491, pvalue=1.019850805286306e-13)},
+        'plagiarism': {'nsamples': 230, 'pearson': (0.6220787891108402, 4.984889054900226e-26), 'spearman': SpearmanrResult(correlation=0.6703155147097506, pvalue=2.2708770072438962e-31)},
+        'headlines': {'nsamples': 249, 'pearson': (0.60232097976289, 5.638504658301557e-26), 'spearman': SpearmanrResult(correlation=0.6325140143770595, pvalue=3.1374026873553205e-29)}},
+
+
+'SubjNumber': {'acc': 70.78, 'ntest': 10000, 'devacc': 72.28, 'ndev': 10000},
+
+'Tense': {'acc': 67.49, 'ntest': 10000, 'devacc': 70.87, 'ndev': 10000},
+
+'Depth': {'acc': 23.8, 'ntest': 10000, 'devacc': 24.96, 'ndev': 10000},
+
+'BigramShift': {'acc': 51.13, 'ntest': 10000, 'devacc': 50.85, 'ndev': 10000},

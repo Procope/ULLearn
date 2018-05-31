@@ -1,0 +1,44 @@
+{'STS16': {'answer-answer': {'nsamples': 254, 
+		'spearman': SpearmanrResult(correlation=0.48651134607298835, pvalue=1.6921921419641272e-16), 
+		'pearson': (0.4087320421710091, 1.1979257302300076e-11)}, 
+	'headlines': {'nsamples': 249, 
+		'spearman': SpearmanrResult(correlation=0.6346798887435873, pvalue=1.7749117837971588e-29), 
+		'pearson': (0.6234027203560208, 3.282139354902998e-28)}, 
+	'all': {
+		'spearman': {'mean': 0.6628982698571085, 'wmean': 0.661047452751848}, 
+		'pearson': {'mean': 0.6182335643522927, 'wmean': 0.6159128354401994}}, 
+	'postediting': {'nsamples': 244, 
+		'spearman': SpearmanrResult(correlation=0.8003985753595733, pvalue=1.0585042234232895e-55), 
+		'pearson': (0.7411205708644707, 9.190502174443989e-44)},
+	'plagiarism': {'nsamples': 230, 
+		'spearman': SpearmanrResult(correlation=0.7609252715428654, pvalue=1.016473783895691e-44),
+ 		'pearson': (0.721441780558944, 2.9834623843862005e-38)},
+	'question-question': {'nsamples': 209, 
+		'spearman': SpearmanrResult(correlation=0.6319762675665285, pvalue=1.0560604586160222e-24),
+		'pearson': (0.5964707078110187, 1.5826470091271078e-21)}}, 
+
+'BigramShift': {'ndev': 10000, 'ntest': 10000, 'acc': 50.45, 'devacc': 50.94}, 
+
+'SST5': {'ndev': 1101, 'ntest': 2210, 'acc': 33.71, 'devacc': 33.15},
+
+'CR': {'ndev': 3775, 'ntest': 3775, 'acc': 70.3, 'devacc': 70.37},
+
+'MRPC': {'ndev': 4076, 'ntest': 1725, 'acc': 71.3, 'f1': 80.24, 'devacc': 71.17}, 
+
+Depth': {'ndev': 10000, 'ntest': 10000, 'acc': 22.32, 'devacc': 23.35},
+
+'TREC': {'ndev': 5452, 'ntest': 500, 'acc': 56.4, 'devacc': 53.9},
+
+'SubjNumber': {'ndev': 10000, 'ntest': 10000, 'acc': 65.83, 'devacc': 67.07},
+
+'SICKEntailment': {'ndev': 500, 'ntest': 4927, 'acc': 74.71, 'devacc': 73.2},
+
+'MPQA': {'ndev': 10606, 'ntest': 10606, 'acc': 84.51, 'devacc': 84.5},
+
+'Tense': {'ndev': 10000, 'ntest': 10000, 'acc': 65.53, 'devacc': 67.14},
+
+'SUBJ': {'ndev': 10000, 'ntest': 10000, 'acc': 77.48, 'devacc': 77.37},
+
+'MR': {'ndev': 10662, 'ntest': 10662, 'acc': 64.69, 'devacc': 64.52},
+
+'SST2': {'ndev': 872, 'ntest': 1821, 'acc': 68.53, 'devacc': 67.89}}
