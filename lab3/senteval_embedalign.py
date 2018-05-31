@@ -22,9 +22,11 @@ import dgm4nlp
 # Paths
 PATH_TO_DATA = 'SentEval/data'
 PATH_TO_MODEL_DIR = 'models/embedalign/'
-PATH_TO_MODEL = 'fasttext-100-w5-fr1-ns5-ep30.embs'
 PATH_TO_CKPT = 'model.best.validation.aer.ckpt'
 PATH_TO_TOKENIZER = 'tokenizer.pickle'
+
+# param: whether to remove stop words from sentence
+STOP_WORDS = False
 
 
 class dotdict(dict):
@@ -32,6 +34,7 @@ class dotdict(dict):
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
+
 
 class EmbeddingExtractor:
     """
@@ -105,7 +108,8 @@ params_senteval = {'task_path': '',
                    'ckpt_path': '',
                    'tok_path': '',
                    'extractor': None,
-                   'tks1': None}
+                   'tks1': None,
+                   'stop_words':STOP_WORDS}
 # made dictionary a dotdict
 params_senteval = dotdict(params_senteval)
 # this is the config for the NN classifier but we are going to use scikit-learn logistic regression with 10 kfold
@@ -147,10 +151,19 @@ def batcher(params, batch):
     # you can change it into NULL dependening in your model
     batch = [sent if sent != [] else ['.'] for sent in batch]
     embeddings = []
+
+    if params.stop_words:
+        with open('stop_words_en.txt', 'r') as f_in:
+            stop_words = [line.strip() for line in f_in.readlines()]
+
     for sent in batch:
         # Here is where dgm4nlp converts strings to unique ids respecting the vocabulary
         # of the pre-trained EmbedAlign model
-        # from tokens ot ids.  Index 0 refers to English part.
+        # from tokens to ids.  Index 0 refers to English part.
+
+        if params.stop_words:
+            sent = [w for w in sent if w not in stop_words]
+
         x1 = params.tks1[0].to_sequences([(' '.join(sent))])
 
         # extract word embeddings in context for a sentence
@@ -191,13 +204,15 @@ if __name__ == "__main__":
     # in (https://arxiv.org/abs/1802.05883) we use the following :
     # SICKRelatedness (Sick-R) needs torch cuda to work (even when using logistic regression),
     # but STS14 (semantic textual similarity) is a similar type of semantic task
-    transfer_tasks = ['CR', 'MR', 'MPQA', 'SUBJ', 'SST2', 'STS16',
-                      'SST5', 'TREC', 'MRPC', 'SICKEntailment',
-                      'Depth', 'BigramShift', 'Tense', 'SubjNumber']
+    # transfer_tasks = ['CR', 'MR', 'MPQA', 'SUBJ', 'SST2', 'STS16',
+                      # 'SST5', 'TREC', 'MRPC', 'SICKEntailment',
+                      # 'Depth', 'BigramShift', 'Tense', 'SubjNumber']
+
+    transfer_tasks = ['TopConstituents', 'ObjNumber', 'OddManOut', 'CoordinationInversion', 'Length']
 
     # senteval prints the results and returns a dictionary with the scores
     results = se.eval(transfer_tasks)
     print(results)
 
-    with open('output/embedalign_results.txt', 'w') as f_out:
+    with open('output/embedalign_probing_results.txt', 'w') as f_out:
         print(results, file=f_out)
